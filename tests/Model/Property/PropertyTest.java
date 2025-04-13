@@ -143,6 +143,110 @@ public class PropertyTest {
         assertEquals(0, parkPlace.getNumHouses());
         assertEquals(1, parkPlace.getNumHotels());
     }
+    @Test
+    public void testCannotBuyHotelWithoutOwner() {
+        assertFalse(boardwalk.canBuyHotel(banker));
+    }
+    @Test
+    public void testCannotBuyHotelWithLessThan4Houses() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        banker.deposit(owner, 10000);
+        for (int i = 0; i < 3; i++) {
+            if (boardwalk.canBuyHouse(banker)) {
+                assertTrue(boardwalk.buyHouse(banker));
+            }
+            if (parkPlace.canBuyHouse(banker)) {
+                assertTrue(parkPlace.buyHouse(banker));
+            }
+        }
+        assertEquals(3, boardwalk.getNumHouses());
+        assertEquals(3, parkPlace.getNumHouses());
+        assertFalse(boardwalk.canBuyHotel(banker));
+        assertFalse(boardwalk.buyHotel(banker));
+        assertFalse(boardwalk.hasHotel());
+        assertEquals(0, boardwalk.getNumHotels());
+    }
+    @Test
+    public void testSellHotel() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        banker.deposit(owner, 10000);
+        for (int i = 0; i < 4; i++) {
+            if (boardwalk.canBuyHouse(banker)) {
+                assertTrue(boardwalk.buyHouse(banker));
+            }
+            if (parkPlace.canBuyHouse(banker)) {
+                assertTrue(parkPlace.buyHouse(banker));
+            }
+        }
+        assertEquals(4, boardwalk.getNumHouses());
+        assertEquals(4, parkPlace.getNumHouses());
+        assertTrue(boardwalk.canBuyHotel(banker));
+        assertTrue(boardwalk.buyHotel(banker));
+        assertTrue(boardwalk.hasHotel());
+        assertEquals(0, boardwalk.getNumHouses());
+        assertTrue(boardwalk.sellHotel(banker));
+        assertFalse(boardwalk.hasHotel());
+        assertEquals(4, boardwalk.getNumHouses());
+    }
+    @Test
+    public void testSellHouse() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        banker.deposit(owner, 10000);
+        assertTrue(boardwalk.buyHouse(banker));
+        assertEquals(1, boardwalk.getNumHouses());
+        assertTrue(boardwalk.sellHouse(banker));
+        assertEquals(0, boardwalk.getNumHouses());
+    }
+    @Test
+    public void testMortgageCondition() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        assertFalse(boardwalk.isMortgaged());
+        assertTrue(boardwalk.mortgage());
+        assertTrue(boardwalk.isMortgaged());
+    }
+    @Test
+    public void testCannotMortgageWithHouses() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        banker.deposit(owner, 10000);
+        for (int i = 0; i < 4; i++) {
+            if (boardwalk.canBuyHouse(banker)) {
+                assertTrue(boardwalk.buyHouse(banker));
+            }
+            if (parkPlace.canBuyHouse(banker)) {
+                assertTrue(parkPlace.buyHouse(banker));
+            }
+        }
+        assertFalse(boardwalk.canMortgage());
+    }
+    @Test
+    public void testUnmortgage() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        assertEquals(200, boardwalk.getMortgageValue());
+        assertFalse(boardwalk.isMortgaged());
+        assertTrue(boardwalk.mortgage());
+        assertEquals(1700, banker.getBalance(owner));
+        assertTrue(boardwalk.isMortgaged());
+        assertTrue(boardwalk.unmortgage());
+        assertEquals(1480, banker.getBalance(owner));
+        assertFalse(boardwalk.isMortgaged());
+    }
+    @Test
+    public void testSellHousesEvenly() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        banker.deposit(owner, 1000);
+        for (int i = 0; i < 4; i++) {
+            boardwalk.buyHouse(banker);
+            parkPlace.buyHouse(banker);
+        }
+        assertTrue(boardwalk.sellHouse(banker));
+        assertEquals(3, boardwalk.getNumHouses());
+        assertFalse(boardwalk.sellHouse(banker));
+    }
 
 
 

@@ -600,6 +600,7 @@ public class Property extends BoardSpace {
                 colorGroup, owner, isMortgaged, numHouses,
                 hasHotel, housePrice
         );
+
     }
 
 }
