@@ -117,6 +117,34 @@ public class PropertyTest {
         boardwalk.setMortgaged(true);
         assertFalse(boardwalk.canBuyHouse(banker));
     }
+    @Test
+    public void testBuyHotel() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        banker.deposit(owner, 10000);
+        for (int i = 0; i < 4; i++) {
+            if (boardwalk.canBuyHouse(banker)) {
+                assertTrue(boardwalk.buyHouse(banker));
+            }
+            if (parkPlace.canBuyHouse(banker)) {
+                assertTrue(parkPlace.buyHouse(banker));
+            }
+        }
+        assertEquals(4, boardwalk.getNumHouses());
+        assertEquals(4, parkPlace.getNumHouses());
+        assertTrue(boardwalk.canBuyHotel(banker));
+        assertTrue(boardwalk.buyHotel(banker));
+        assertTrue(boardwalk.hasHotel());
+        assertEquals(0, boardwalk.getNumHouses());
+        assertEquals(1, boardwalk.getNumHotels());
+        assertTrue(parkPlace.canBuyHotel(banker));
+        assertTrue(parkPlace.buyHotel(banker));
+        assertTrue(parkPlace.hasHotel());
+        assertEquals(0, parkPlace.getNumHouses());
+        assertEquals(1, parkPlace.getNumHotels());
+    }
+
+
 
 
 

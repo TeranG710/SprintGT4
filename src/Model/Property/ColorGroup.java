@@ -112,8 +112,18 @@ public class ColorGroup {
             return false;
         }
 
+        Player owner = property.getOwner();
+        if (owner == null || !hasMonopoly(owner)) {
+            return false;
+        }
+
+        if (property.hasHotel() || property.getNumHouses() != 4) {
+            return false;
+        }
+
         for (Property p : properties) {
-            if (p.hasHotel() || p.getNumHouses() != 4) {
+            if (p == property) continue;
+            if (!(p.hasHotel() || p.getNumHouses() == 4)) {
                 return false;
             }
         }

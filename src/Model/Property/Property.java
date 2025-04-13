@@ -28,6 +28,7 @@ public class Property extends BoardSpace {
     private boolean hasHotel;
     private int housePrice;
     private Banker banker;
+    private int numHotels;
 
     /**
      * Constructor for Property
@@ -55,6 +56,7 @@ public class Property extends BoardSpace {
         this.colorGroup = colorGroup;
         this.isMortgaged = false;
         this.numHouses = 0;
+        this.numHotels = 0;
         this.hasHotel = false;
         this.banker = Banker.getInstance();
         setHousePriceByColor();
@@ -248,6 +250,7 @@ public class Property extends BoardSpace {
             banker.incrementAvailableHouses(4);
             hasHotel = true;
             numHouses = 0;
+            numHotels++;
             return true;
         } catch (Exception e) {
             return false;
@@ -504,6 +507,9 @@ public class Property extends BoardSpace {
      */
     public int getNumHouses() {
         return numHouses;
+    }
+    public int getNumHotels() {
+        return numHotels;
     }
 
     /**
