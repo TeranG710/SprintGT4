@@ -49,8 +49,6 @@ public class HumanPlayer extends Player {
         banker.sellHotel(property, player);
     }
 
-
-
     /***
      * Move the player on the board.
      * This method is abstract and should be implemented by subclasses.

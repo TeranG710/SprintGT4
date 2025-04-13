@@ -109,6 +109,26 @@ public class PlayerTest{
         assertEquals("Cpu", player.getName());
     }
 
+//    @Test
+//    public void testCpuSellProperty() throws PlayerNotFoundException {
+//        Banker banker = Banker.getInstance();
+//        GameBoard gameBoard = GameBoard.getInstance();
+//        Player player = new ComputerPlayer("TestPlayer", gameBoard);
+//        Token token = new Token("TestToken");
+//        player.setTokenToPlayer(token);
+//        banker.addPlayer(player);
+//        Property property = new Property("TestProperty", 1, 100, 10, new int[]{50, 100, 150, 200}, 250, 50, PropertyColor.BROWN, new ColorGroup(PropertyColor.BROWN, 2));
+//        banker.addAvailableProperty(property);
+//        for (int i = 0; i < 100; i++){
+//            player.sellProperty(property, player);
+//            if(player.getProperties().size() == 1){
+//                break;
+//            }
+//        }
+//        assertEquals(1400, banker.getBalance(player));
+//        assertEquals(1, player.getProperties().size());
+//    }
+
 
     @Test
     public void testPlayerBuyHouse() throws PlayerNotFoundException {

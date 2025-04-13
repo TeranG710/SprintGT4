@@ -121,86 +121,108 @@ public class CommunityChestCard extends Card {
      * Team member(s) responsible: Jamell
      */
     public void useCard(String message, Player player) throws PlayerNotFoundException {
-//        switch (message) {
-//            case "Advance to Go (Collect $200)":
-//                player.move(GO_POSITION);
-//                banker.deposit(player, 200);
-//                break;
-//
-//            case "Bank error in your favor. Collect $200":
-//                banker.deposit(player, 200);
-//                break;
-//
-//            case "Doctor's fee. Pay $50":
-//                banker.withdraw(player, 50);
-//                break;
-//
-//            case "From sale of stock you get $50":
-//                banker.deposit(player, 50);
-//                break;
-//
-//            case "Get Out of Jail Free":
-//                player.addGetOutOfJailFreeCard();
-//                break;
-//
-//            case "Go to Jail. Go directly to jail, do not pass Go, do not collect $200":
-//                player.goToJail();
-//                player.setInJail(true);
-//                break;
-//
-//            case "Holiday fund matures. Receive $100":
-//                banker.deposit(player, 100);
-//                break;
-//
-//            case "Income tax refund. Collect $20":
-//                banker.deposit(player, 20);
-//                break;
-//
+        switch (message) {
+            case "Advance to Go (Collect $200)":
+                int goSteps = calculateSteps(player.getPosition(), 0);
+                player.move(player, goSteps);
+                break;
+
+            case "Bank error in your favor. Collect $200":
+                banker.deposit(player, 200);
+                break;
+
+            case "Doctor's fee. Pay $50":
+                banker.withdraw(player, 50);
+                break;
+
+            case "From sale of stock you get $50":
+                banker.deposit(player, 50);
+                break;
+
+            case "Get Out of Jail Free":
+                player.addGetOutOfJailFreeCard();
+                break;
+
+            case "Go to Jail. Go directly to jail, do not pass Go, do not collect $200":
+                int jailSteps = calculateSteps(player.getPosition(), 10);
+                player.move(player, jailSteps);
+                player.setInJail(true);
+                break;
+
+            case "Holiday fund matures. Receive $100":
+                banker.deposit(player, 100);
+                break;
+
+            case "Income tax refund. Collect $20":
+                banker.deposit(player, 20);
+                break;
+
 //            case "It is your birthday. Collect $10 from every player":
 //                List<Player> otherPlayers = game.getOtherPlayers(player);
 //                for (Player otherPlayer : otherPlayers) {
 //                    banker.transferMoney(otherPlayer, player, 10);
 //                }
 //                break;
-//
-//            case "Life insurance matures. Collect $100":
-//                banker.withdraw(player, 100);
-//                break;
-//
-//            case "Pay hospital fees of $100":
-//                banker.withdraw(player, 100);
-//                break;
-//
-//            case "Pay school fees of $50":
-//                banker.deposit(player, 50);
-//                break;
-//
-//            case "Receive $25 consultancy fee":
-//                banker.deposit(player, 25);
-//                break;
-//
+
+            case "Life insurance matures. Collect $100":
+                banker.deposit(player, 100);
+                break;
+
+            case "Pay hospital fees of $100":
+                banker.withdraw(player, 100);
+                break;
+
+            case "Pay school fees of $50":
+                banker.withdraw(player, 50);
+                break;
+
+            case "Receive $25 consultancy fee":
+                banker.deposit(player, 25);
+                break;
+
 //            case "You are assessed for street repair. $40 per house. $115 per hotel":
 //                int houses = banker.getPlayerProperties(player).getHouseCount();
 //                int hotels = banker.getPlayerProperties(player).getHotelCount();
 //                int repairCost = (houses * 40) + (hotels * 115);
 //                banker.withdraw(player, repairCost);
 //                break;
-//
-//            case "You have won second prize in a beauty contest. Collect $10":
-//                banker.deposit(player, 10);
-//                break;
-//
-//            case "You inherit $100":
-//                banker.deposit(player, 100);
-//                break;
-//
-//            default:
-//                System.out.println("Unknown Community Chest card: " + message);
-//                break;
-//        }
+
+            case "You have won second prize in a beauty contest. Collect $10":
+                banker.deposit(player, 10);
+                break;
+
+            case "You inherit $100":
+                banker.deposit(player, 100);
+                break;
+
+            default:
+                System.out.println("Unknown Community Chest card: " + message);
+                break;
+        }
     }
 
+    /**
+     * This method is used to reset the CommunityChestCard class.
+     * Team member(s) responsible: Jamell
+     */
     public static void reset() {
         instance = null;
     }
+
+    /**
+     * This method is used to calculate the steps to move.
+     * Team member(s) responsible: Jamell
+     */
+    private int calculateSteps(int current, int target) {
+        return (target - current + 40) % 40;
+    }
+
+    /**
+     * This method is used to figure out if the player passes Go.
+     * Team member(s) responsible: Jamell
+     */
+    private boolean passesGo(int current, int steps) {
+        return (current + steps) >= 40;
+    }
+
 }
