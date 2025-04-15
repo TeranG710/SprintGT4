@@ -3,12 +3,16 @@ package Model.Board;
 import static org.junit.jupiter.api.Assertions.*;
 
 import Model.Exceptions.PlayerNotFoundException;
+import Model.Game;
 import Model.Property.ColorGroup;
 import Model.Property.Property;
 import Model.Property.PropertyColor;
+import Model.Spaces.BoardSpace;
 import Model.Spaces.Railroad;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
 
 
 public class PlayerTest{
@@ -17,6 +21,7 @@ public class PlayerTest{
     public void setUp() {
         Banker.reset();
         GameBoard.resetInstance();
+        Game.resetInstance();
     }
 
 
@@ -109,25 +114,27 @@ public class PlayerTest{
         assertEquals("Cpu", player.getName());
     }
 
-//    @Test
-//    public void testCpuSellProperty() throws PlayerNotFoundException {
-//        Banker banker = Banker.getInstance();
-//        GameBoard gameBoard = GameBoard.getInstance();
-//        Player player = new ComputerPlayer("TestPlayer", gameBoard);
-//        Token token = new Token("TestToken");
-//        player.setTokenToPlayer(token);
-//        banker.addPlayer(player);
-//        Property property = new Property("TestProperty", 1, 100, 10, new int[]{50, 100, 150, 200}, 250, 50, PropertyColor.BROWN, new ColorGroup(PropertyColor.BROWN, 2));
-//        banker.addAvailableProperty(property);
-//        for (int i = 0; i < 100; i++){
-//            player.sellProperty(property, player);
-//            if(player.getProperties().size() == 1){
-//                break;
-//            }
-//        }
-//        assertEquals(1400, banker.getBalance(player));
-//        assertEquals(1, player.getProperties().size());
-//    }
+    @Test
+    public void testCpuSellProperty() throws PlayerNotFoundException {
+        Banker banker = Banker.getInstance();
+        GameBoard gameBoard = GameBoard.getInstance();
+        Player player = new ComputerPlayer("TestPlayer", gameBoard);
+        Token token = new Token("TestToken");
+        player.setTokenToPlayer(token);
+        banker.addPlayer(player);
+        Property property = new Property("TestProperty", 1, 100, 10, new int[]{50, 100, 150, 200}, 250, 50, PropertyColor.BROWN, new ColorGroup(PropertyColor.BROWN, 2));
+        Property property2 = new Property("TestProperty2", 2, 100, 10, new int[]{50, 100, 150, 200}, 250, 50, PropertyColor.BROWN, new ColorGroup(PropertyColor.BROWN, 2));
+        banker.addAvailableProperty(property);
+        banker.addAvailableProperty(property2);
+        banker.addTitleDeed(player, property);
+        while(player.getProperties().size() < 2){
+            player.sellProperty(property2, player);
+            if(player.getProperties().size() == 2){
+                break;
+            }}
+        assertEquals(1400, banker.getBalance(player));
+        assertEquals(2, player.getProperties().size());
+    }
 
 
     @Test
@@ -252,5 +259,61 @@ public class PlayerTest{
         assertEquals(1, player.getProperties().size());
         assertEquals(1100, banker.getBalance(player));
     }
+
+
+    @Test
+    public void testComputerPlayerMoveToGoSpace() throws PlayerNotFoundException {
+        Banker banker = Banker.getInstance();
+        GameBoard gameBoard = GameBoard.getInstance();
+        Player player = new ComputerPlayer("TestPlayer", gameBoard);
+        Token token = new Token("TestToken");
+        player.setTokenToPlayer(token);
+        banker.addPlayer(player);
+        player.move(player, 3);
+        assertEquals(3, player.getPosition());
+        assertEquals(1440, banker.getBalance(player));
+    }
+
+//    @Test
+//    public void testComputerPlayerBuyHouse() throws PlayerNotFoundException {
+//        Banker banker = Banker.getInstance();
+//        GameBoard gameBoard = GameBoard.getInstance();
+//        Player player = new ComputerPlayer("TestPlayer", gameBoard);
+//        Token token = new Token("TestToken");
+//        player.setTokenToPlayer(token);
+//        banker.addPlayer(player);
+//        Property property = new Property("TestProperty", 1, 100, 10, new int[]{50, 100, 150, 200}, 250, 50, PropertyColor.BROWN, new ColorGroup(PropertyColor.BROWN, 2));
+//        banker.addAvailableProperty(property);
+//        banker.addTitleDeed(player, property);
+//        while (property.getNumHouses() < 0) {
+//            player.sellHouse(property, player);
+//            if (property.getNumHouses() == 1) {
+//                break;
+//            }
+//        }
+//        assertEquals(31, banker.getAvailableHouses());
+//    }
+    
+//
+//    @Test
+//    public void testComputerPlayerSellHouse() throws PlayerNotFoundException {
+//        Banker banker = Banker.getInstance();
+//        GameBoard gameBoard = GameBoard.getInstance();
+//        Player player = new ComputerPlayer("TestPlayer", gameBoard);
+//        Token token = new Token("TestToken");
+//        player.setTokenToPlayer(token);
+//        banker.addPlayer(player);
+//        Property property = new Property("TestProperty", 1, 100, 10, new int[]{50, 100, 150, 200}, 250, 50, PropertyColor.BROWN, new ColorGroup(PropertyColor.BROWN, 2));
+//        banker.addAvailableProperty(property);
+//        banker.addTitleDeed(player, property);
+//        while (property.getNumHouses() < 0) {
+//            player.sellHouse(property, player);
+//            if (property.getNumHouses() == 1) {
+//                break;
+//            }
+//        }
+//        assertEquals(31, banker.getAvailableHouses());
+//    }
+
 
 }

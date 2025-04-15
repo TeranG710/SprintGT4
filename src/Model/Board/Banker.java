@@ -82,6 +82,7 @@ public class Banker {
             throw new PlayerAlreadyExistsException();
         }
         playerBalances.put(player, 1500);
+
     }
 
     /**
