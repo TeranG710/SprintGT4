@@ -18,15 +18,16 @@ import Model.Exceptions.*;
 import java.util.ArrayList;
 
 public class Game {
+
     private Banker banker;
     private GameBoard board;
     private ChanceCard chanceCard;
     private CommunityChestCard communityChestCard;
     private ArrayList<Player> players;
     private boolean inProgress;
+    private static Game instance;
 
-
-    public Game() {
+    private Game() {
         this.banker = Banker.getInstance();
         this.chanceCard = ChanceCard.getInstance();
         this.communityChestCard = CommunityChestCard.getInstance();
@@ -35,6 +36,18 @@ public class Game {
         this.inProgress = false;
         this.board = GameBoard.getInstance();
     }
+    /**
+     * This method is used to get the instance of the game.
+     * It is a singleton class, so it can only have one instance.
+     * Team member(s) responsible: Jamell
+     */
+    public static Game getInstance() {
+        if (instance == null) {
+            instance = new Game();
+        }
+        return instance;
+    }
+
     /**
      * This method is used to get the board object.
      * Team member(s) responsible: Deborah
@@ -167,6 +180,14 @@ public class Game {
             System.out.println("No winner could be determined.");
         }
         resetGame();
+    }
+
+    /**
+     * This method is used to get the banker object.
+     * Team member(s) responsible: Jamell
+     */
+    public static void resetInstance() {
+        instance = null;
     }
 
 }

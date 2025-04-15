@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Manages the turn order and progression in a Monopoly game.
  */
-public class TurnManager {
+public class  TurnManager {
     private final List<Player> players;
     private int currentPlayerIndex;
     private Dice dice;
@@ -28,20 +28,18 @@ public class TurnManager {
      * The turn order is randomized.
      *
      * @param players List of players in the game.
-     *                Team Member(s) responsible: Giovanny
+     * Team Member(s) responsible: Giovanny
      */
     public TurnManager(List<Player> players) {
         if (players.size() < 2 || players.size() > 4) {
             throw new IllegalArgumentException("Monopoly requires 2 to 4 players.");
         }
         this.players = new ArrayList<>(players);
-        Collections.shuffle(this.players); // Randomize turn order
+        Collections.shuffle(this.players);
         this.currentPlayerIndex = 0;
         this.dice = Dice.getInstance();
         this.banker = Banker.getInstance();
         this.gameBoard = GameBoard.getInstance();
-
-        // Reset dice counter at initialization
         dice.resetDoubleRollCounter();
     }
 
@@ -61,7 +59,6 @@ public class TurnManager {
      */
     public void nextTurn() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        // Reset dice counter when switching players
         dice.resetDoubleRollCounter();
     }
 

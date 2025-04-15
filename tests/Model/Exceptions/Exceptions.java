@@ -1,5 +1,6 @@
 package Model.Exceptions;
 
+import Model.Board.Dice;
 import Model.Game;
 import Model.Board.Banker;
 import Model.Board.HumanPlayer;
@@ -18,9 +19,11 @@ class GameExceptionTest {
     private Player player5;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         Banker.reset();
-        game = new Game();
+        Game.resetInstance();
+        Dice.reset();
+        game = Game.getInstance();
         player1 = new HumanPlayer("Alice",game.getBoard());
         player2 = new HumanPlayer("Bob",game.getBoard());
         player3 = new HumanPlayer("Charlie",game.getBoard());
@@ -29,7 +32,8 @@ class GameExceptionTest {
     }
 
     @Test
-    void addPlayerThrowsMaximumPlayerReachedException() throws Exception {
+    public void addPlayerThrowsMaximumPlayerReachedException() throws Exception {
+        Game game = Game.getInstance();
         game.addPlayer(player1);
         game.addPlayer(player2);
         game.addPlayer(player3);
@@ -38,19 +42,22 @@ class GameExceptionTest {
     }
 
     @Test
-    void addPlayerThrowsPlayerAlreadyExistsException() throws Exception {
+    public void addPlayerThrowsPlayerAlreadyExistsException() throws Exception {
+        Game game = Game.getInstance();
         game.addPlayer(player1);
         assertThrows(PlayerAlreadyExistsException.class, () -> game.addPlayer(player1));
     }
 
     @Test
-    void startGameThrowsNotEnoughPlayersException() {
+    public void startGameThrowsNotEnoughPlayersException() {
+        Game game = Game.getInstance();
         game.addPlayer(player1);
         assertThrows(NotEnoughPlayersException.class, game::startGame);
     }
 
     @Test
-    void startGameThrowsGameInProgressException() throws Exception {
+    public void startGameThrowsGameInProgressException() throws Exception {
+        Game game = Game.getInstance();
         game.addPlayer(player1);
         game.addPlayer(player2);
         game.startGame();
@@ -58,23 +65,27 @@ class GameExceptionTest {
     }
 
     @Test
-    void winnerThrowsGameNotInProgressException() {
+    public void winnerThrowsGameNotInProgressException() {
+        Game game = Game.getInstance();
         assertThrows(GameNotInProgressException.class, game::winner);
     }
 
     @Test
-    void bankerThrowsPlayerNotFoundException() {
+    public void bankerThrowsPlayerNotFoundException() {
+        Game game = Game.getInstance();
         Banker banker = Banker.getInstance();
         assertThrows(PlayerNotFoundException.class, () -> banker.getBalance(new HumanPlayer("Nonexistent", game.getBoard())));
     }
 
     @Test
-    void resetGameThrowsGameNotInProgressException() {
+    public void resetGameThrowsGameNotInProgressException() {
+        Game game = Game.getInstance();
         assertThrows(GameNotInProgressException.class, game::resetGame);
     }
 
     @Test
-    void endGameThrowsGameNotInProgressException() {
+    public void endGameThrowsGameNotInProgressException() {
+        Game game = Game.getInstance();
         assertThrows(GameNotInProgressException.class, game::endGame);
     }
 }

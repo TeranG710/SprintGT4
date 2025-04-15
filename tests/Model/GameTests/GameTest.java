@@ -16,11 +16,12 @@ class GameTest {
     @BeforeEach
     public void setUp() {
         Banker.reset();
+        Game.resetInstance();
     }
 
     @Test
     public void startGame() throws PlayerNotFoundException {
-        Game game = new Game();
+        Game game = Game.getInstance();
         assertNotNull(game.getBoard());
         Player player = new HumanPlayer("Player 1", game.getBoard());
         Player computerPlayer = new ComputerPlayer("Player 2", game.getBoard());
@@ -35,7 +36,7 @@ class GameTest {
 
     @Test
     public void gameInProgress() {
-        Game game = new Game();
+        Game game = Game.getInstance();
         assertFalse(game.gameInProgress());
         Player player = new HumanPlayer("Player 1", game.getBoard());
         Player computerPlayer = new ComputerPlayer("Player 2", game.getBoard());
@@ -47,7 +48,7 @@ class GameTest {
 
     @Test
     public void testGameEnd() throws PlayerNotFoundException {
-        Game game = new Game();
+        Game game = Game.getInstance();
         Player player = new HumanPlayer("Player 1", game.getBoard());
         Player computerPlayer = new ComputerPlayer("Player 2", game.getBoard());
         game.addPlayer(player);
@@ -60,7 +61,7 @@ class GameTest {
 
     @Test
     public void testWinnerOfAGame() throws PlayerNotFoundException {
-        Game game = new Game();
+        Game game = Game.getInstance();
         Banker banker = Banker.getInstance();
         Player player1 = new HumanPlayer("Player 1", game.getBoard());
         Player player2 = new ComputerPlayer("Player 2", game.getBoard());

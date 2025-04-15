@@ -17,7 +17,8 @@ public class Main {
 
         System.out.println("");
         System.out.println("**Sprint 3 House Demo**");
-        Game demoGame = new Game();
+        Game.resetInstance();
+        Game demoGame = Game.getInstance();
         GameBoard gameBoardDemo = GameBoard.getInstance();
         Banker bankerHouses = Banker.getInstance();
         Player player1Houses = new HumanPlayer("Alice", gameBoardDemo);
@@ -64,7 +65,8 @@ public class Main {
 
         System.out.println("");
         System.out.println("**Sprint 3 Player Turn Demo**");
-        Game newGame = new Game();
+        Game.resetInstance();
+        Game newGame = Game.getInstance();
         GameBoard newGameBoard = GameBoard.getInstance();
         Banker banker = Banker.getInstance();
         Player player1 = new HumanPlayer("Alice", newGameBoard);
@@ -92,7 +94,8 @@ public class Main {
 
         System.out.println("");
         System.out.println("**Sprint 3 Cpu Player Actions Demo**");
-        Game game = new Game();
+        Game.resetInstance();
+        Game game = Game.getInstance();
         GameBoard gameBoard = GameBoard.getInstance();
         Player cpuPlayer3 = new ComputerPlayer("Cpu", gameBoard);
         Player humanPlayer3 = new HumanPlayer("HumanPlayer", gameBoard);
