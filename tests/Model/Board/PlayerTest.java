@@ -293,7 +293,7 @@ public class PlayerTest{
 //        }
 //        assertEquals(31, banker.getAvailableHouses());
 //    }
-    
+
 //
 //    @Test
 //    public void testComputerPlayerSellHouse() throws PlayerNotFoundException {
