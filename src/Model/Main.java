@@ -9,107 +9,120 @@ package Model;
 import Model.Board.*;
 import Model.Exceptions.PlayerNotFoundException;
 import Model.Property.Property;
+import View.Gui;
 
+import javax.swing.*;
 import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws PlayerNotFoundException {
 
-        System.out.println("");
-        System.out.println("**Sprint 3 House Demo**");
-        Game.resetInstance();
-        Game demoGame = Game.getInstance();
-        GameBoard gameBoardDemo = GameBoard.getInstance();
-        Banker bankerHouses = Banker.getInstance();
-        Player player1Houses = new HumanPlayer("Alice", gameBoardDemo);
-        Player player2Houses = new HumanPlayer("Bob", gameBoardDemo);
-        demoGame.addPlayer(player1Houses);
-        demoGame.addPlayer(player2Houses);
-        System.out.println("Added players: " + player1Houses.getName() + ", " + player2Houses.getName());
-        demoGame.startGame();
-        Property mediterranean = (Property) gameBoardDemo.getSpace(1);
-        Property baltic = (Property) gameBoardDemo.getSpace(3);
 
-        bankerHouses.addTitleDeed(player1Houses, mediterranean);
-        bankerHouses.addTitleDeed(player1Houses, baltic);
 
-        System.out.println(player1Houses.getName() + " owns: " + bankerHouses.getPlayerProperties(player1Houses));
-        System.out.println("Monopoly achieved: " + mediterranean.getColorGroup().hasMonopoly(player1Houses));
-        for (int i = 0; i < 4; i++) {
-            if (mediterranean.canBuyHouse(bankerHouses)) {
-                mediterranean.buyHouse(bankerHouses);
+            // Use the Event Dispatch Thread for Swing applications
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                    new Gui();
             }
-            if (baltic.canBuyHouse(bankerHouses)) {
-                baltic.buyHouse(bankerHouses);
-            }
-        }
-        System.out.println("\nHouse purchase results:");
-        System.out.println(mediterranean.getName() + " has " + mediterranean.getNumHouses() + " house(s)");
-        System.out.println(baltic.getName() + " has " + baltic.getNumHouses() + " house(s)");
-        System.out.println("Banker has " + bankerHouses.getAvailableHouses() + " houses left");
-
-        if (baltic.canBuyHotel(bankerHouses)) {
-            boolean hotelSuccess = baltic.buyHotel(bankerHouses);
-            System.out.println("\nHotel purchase on Baltic: " + (hotelSuccess ? "Success" : "Failed"));
-        } else {
-            System.out.println("\nBaltic not eligible for hotel purchase.");
-        }
-
-        System.out.println("\nAfter hotel purchase:");
-        System.out.println(baltic.getName() + " has hotel: " + baltic.hasHotel());
-        System.out.println(baltic.getName() + " houses after hotel: " + baltic.getNumHouses());
-        System.out.println("Banker has " + bankerHouses.getAvailableHotels() + " hotels left");
-        System.out.println("Banker has " + bankerHouses.getAvailableHouses() + " houses left");
-        Banker.reset();
+        });
 
 
-        System.out.println("");
-        System.out.println("**Sprint 3 Player Turn Demo**");
-        Game.resetInstance();
-        Game newGame = Game.getInstance();
-        GameBoard newGameBoard = GameBoard.getInstance();
-        Banker banker = Banker.getInstance();
-        Player player1 = new HumanPlayer("Alice", newGameBoard);
-        Player player2 = new HumanPlayer("Bob", newGameBoard);
-        newGame.addPlayer(player1);
-        newGame.addPlayer(player2);
-        System.out.println("Added players: " + player1.getName() + ", " + player2.getName());
-        newGame.startGame();
-        ArrayList<Player> players = newGame.getPlayers();
-        TurnManager turnManager = new TurnManager(players);
-        System.out.println("Turn order: ");
-        for (Player p : turnManager.getTurnOrder()) {
-            System.out.println("- " + p.getName());
-        }
-        for (int turn = 1; turn <= 3; turn++) {
-            System.out.println("\n--- Turn " + turn + " ---");
-            Player currentPlayer = turnManager.getCurrentPlayer();
-            System.out.println("Current player: " + currentPlayer.getName());
-            String turnResult = turnManager.processTurn(currentPlayer);
-            System.out.print(turnResult);
-            turnManager.nextTurn();
-        }
-        Banker.reset();
-        GameBoard.resetInstance();
-
-        System.out.println("");
-        System.out.println("**Sprint 3 Cpu Player Actions Demo**");
-        Game.resetInstance();
-        Game game = Game.getInstance();
-        GameBoard gameBoard = GameBoard.getInstance();
-        Player cpuPlayer3 = new ComputerPlayer("Cpu", gameBoard);
-        Player humanPlayer3 = new HumanPlayer("HumanPlayer", gameBoard);
-        Banker banker4 = Banker.getInstance();
-        game.addPlayer(cpuPlayer3);
-        game.addPlayer(humanPlayer3);
-        game.startGame();
-        System.out.println("Cpu Player: " + cpuPlayer3.getName() + " Added to the game");
-        banker4.getBalance(cpuPlayer3);
-        cpuPlayer3.move(cpuPlayer3,3);
-        System.out.println(cpuPlayer3.getName() + " owns: " + banker4.getPlayerProperties(cpuPlayer3));
-        game.endGame();
-
-
+//        System.out.println("");
+//        System.out.println("**Sprint 3 House Demo**");
+//        Game.resetInstance();
+//        Game demoGame = Game.getInstance();
+//        GameBoard gameBoardDemo = GameBoard.getInstance();
+//        Banker bankerHouses = Banker.getInstance();
+//        Player player1Houses = new HumanPlayer("Alice", gameBoardDemo);
+//        Player player2Houses = new HumanPlayer("Bob", gameBoardDemo);
+//        demoGame.addPlayer(player1Houses);
+//        demoGame.addPlayer(player2Houses);
+//        System.out.println("Added players: " + player1Houses.getName() + ", " + player2Houses.getName());
+//        demoGame.startGame();
+//        Property mediterranean = (Property) gameBoardDemo.getSpace(1);
+//        Property baltic = (Property) gameBoardDemo.getSpace(3);
+//
+//        bankerHouses.addTitleDeed(player1Houses, mediterranean);
+//        bankerHouses.addTitleDeed(player1Houses, baltic);
+//
+//        System.out.println(player1Houses.getName() + " owns: " + bankerHouses.getPlayerProperties(player1Houses));
+//        System.out.println("Monopoly achieved: " + mediterranean.getColorGroup().hasMonopoly(player1Houses));
+//        for (int i = 0; i < 4; i++) {
+//            if (mediterranean.canBuyHouse(bankerHouses)) {
+//                mediterranean.buyHouse(bankerHouses);
+//            }
+//            if (baltic.canBuyHouse(bankerHouses)) {
+//                baltic.buyHouse(bankerHouses);
+//            }
+//        }
+//        System.out.println("\nHouse purchase results:");
+//        System.out.println(mediterranean.getName() + " has " + mediterranean.getNumHouses() + " house(s)");
+//        System.out.println(baltic.getName() + " has " + baltic.getNumHouses() + " house(s)");
+//        System.out.println("Banker has " + bankerHouses.getAvailableHouses() + " houses left");
+//
+//        if (baltic.canBuyHotel(bankerHouses)) {
+//            boolean hotelSuccess = baltic.buyHotel(bankerHouses);
+//            System.out.println("\nHotel purchase on Baltic: " + (hotelSuccess ? "Success" : "Failed"));
+//        } else {
+//            System.out.println("\nBaltic not eligible for hotel purchase.");
+//        }
+//
+//        System.out.println("\nAfter hotel purchase:");
+//        System.out.println(baltic.getName() + " has hotel: " + baltic.hasHotel());
+//        System.out.println(baltic.getName() + " houses after hotel: " + baltic.getNumHouses());
+//        System.out.println("Banker has " + bankerHouses.getAvailableHotels() + " hotels left");
+//        System.out.println("Banker has " + bankerHouses.getAvailableHouses() + " houses left");
+//        Banker.reset();
+//
+//
+//        System.out.println("");
+//        System.out.println("**Sprint 3 Player Turn Demo**");
+//        Game.resetInstance();
+//        Game newGame = Game.getInstance();
+//        GameBoard newGameBoard = GameBoard.getInstance();
+//        Banker banker = Banker.getInstance();
+//        Player player1 = new HumanPlayer("Alice", newGameBoard);
+//        Player player2 = new HumanPlayer("Bob", newGameBoard);
+//        newGame.addPlayer(player1);
+//        newGame.addPlayer(player2);
+//        System.out.println("Added players: " + player1.getName() + ", " + player2.getName());
+//        newGame.startGame();
+//        ArrayList<Player> players = newGame.getPlayers();
+//        TurnManager turnManager = new TurnManager(players);
+//        System.out.println("Turn order: ");
+//        for (Player p : turnManager.getTurnOrder()) {
+//            System.out.println("- " + p.getName());
+//        }
+//        for (int turn = 1; turn <= 3; turn++) {
+//            System.out.println("\n--- Turn " + turn + " ---");
+//            Player currentPlayer = turnManager.getCurrentPlayer();
+//            System.out.println("Current player: " + currentPlayer.getName());
+//            String turnResult = turnManager.processTurn(currentPlayer);
+//            System.out.print(turnResult);
+//            turnManager.nextTurn();
+//        }
+//        Banker.reset();
+//        GameBoard.resetInstance();
+//
+//        System.out.println("");
+//        System.out.println("**Sprint 3 Cpu Player Actions Demo**");
+//        Game.resetInstance();
+//        Game game = Game.getInstance();
+//        GameBoard gameBoard = GameBoard.getInstance();
+//        Player cpuPlayer3 = new ComputerPlayer("Cpu", gameBoard);
+//        Player humanPlayer3 = new HumanPlayer("HumanPlayer", gameBoard);
+//        Banker banker4 = Banker.getInstance();
+//        game.addPlayer(cpuPlayer3);
+//        game.addPlayer(humanPlayer3);
+//        game.startGame();
+//        System.out.println("Cpu Player: " + cpuPlayer3.getName() + " Added to the game");
+//        banker4.getBalance(cpuPlayer3);
+//        cpuPlayer3.move(cpuPlayer3,3);
+//        System.out.println(cpuPlayer3.getName() + " owns: " + banker4.getPlayerProperties(cpuPlayer3));
+//        game.endGame();
+//
+//
 
 //        System.out.println("");
 //        System.out.println("**Sprint 2 Demo Banker Balance Demo**");

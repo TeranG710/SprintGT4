@@ -1183,15 +1183,15 @@ public class Gui {
      * Main method to start the application.
      * Team member(s) responsible: Matt
      */
-    public static void main(String[] args) {
-        // Use the Event Dispatch Thread for Swing applications
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new Gui();
-            }
-        });
-    }
+//    public static void main(String[] args) {
+//        // Use the Event Dispatch Thread for Swing applications
+//        SwingUtilities.invokeLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                new Gui();
+//            }
+//        });
+//    }
 }
 
 
