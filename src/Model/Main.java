@@ -17,9 +17,6 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) throws PlayerNotFoundException {
 
-
-
-            // Use the Event Dispatch Thread for Swing applications
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
