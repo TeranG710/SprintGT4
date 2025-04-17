@@ -149,4 +149,79 @@ public class ColorGroupTest {
         assertFalse(colorGroup.canBuyHotel(boardwalk));
     }
 
+    @Test
+    public void testHasMonopoly() {
+        Player player2 = new HumanPlayer("Player2", null);
+        banker.addPlayer(player2);
+        assertFalse(colorGroup.hasMonopoly(owner));
+        boardwalk.setOwner(owner);
+        assertFalse(colorGroup.hasMonopoly(owner));
+        parkPlace.setOwner(owner);
+        assertTrue(colorGroup.hasMonopoly(owner));
+        parkPlace.setOwner(player2);
+        assertFalse(colorGroup.hasMonopoly(owner));
+        assertFalse(colorGroup.hasMonopoly(player2));
+        assertFalse(colorGroup.hasMonopoly(null));
+    }
+
+    @Test
+    public void testMortgage() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        assertFalse(colorGroup.isFullyMortgaged());
+        assertFalse(colorGroup.hasAnyMortgaged());
+        boardwalk.mortgage();
+        assertFalse(colorGroup.isFullyMortgaged());
+        assertTrue(colorGroup.hasAnyMortgaged());
+        parkPlace.mortgage();
+        assertTrue(colorGroup.isFullyMortgaged());
+        assertTrue(colorGroup.hasAnyMortgaged());
+        parkPlace.unmortgage();
+        assertFalse(colorGroup.isFullyMortgaged());
+        assertTrue(colorGroup.hasAnyMortgaged());
+        boardwalk.unmortgage();
+        assertFalse(colorGroup.isFullyMortgaged());
+        assertFalse(colorGroup.hasAnyMortgaged());
+    }
+
+    @Test
+    public void testGetProperties() {
+        colorGroup.addProperty(boardwalk);
+        colorGroup.addProperty(parkPlace);
+        List<Property> properties = colorGroup.getProperties();
+        assertEquals(2, properties.size());
+        assertTrue(properties.contains(boardwalk));
+        assertTrue(properties.contains(parkPlace));
+    }
+
+//    @Test
+//    public void testCanSellHouses() {
+//        boardwalk.setOwner(owner);
+//        parkPlace.setOwner(owner);
+//
+//        assertFalse(colorGroup.canSellHouse(boardwalk));
+//        assertFalse(colorGroup.canSellHouse(parkPlace));
+//
+//        boardwalk.buyHouse(banker);
+//        assertFalse(colorGroup.canSellHouse(parkPlace));
+//        assertTrue(colorGroup.canSellHouse(boardwalk));
+//        assertEquals(1, boardwalk.getNumHouses());
+//
+//        parkPlace.buyHouse(banker);
+//        assertTrue(colorGroup.canSellHouse(boardwalk));
+//        assertTrue(colorGroup.canSellHouse(parkPlace));
+//        assertEquals(1, parkPlace.getNumHouses());
+//
+//        boardwalk.buyHouse(banker);
+//        parkPlace.buyHouse(banker);
+//        assertEquals(2, boardwalk.getNumHouses());
+//        assertEquals(2, parkPlace.getNumHouses());
+//
+//        boardwalk.sellHouse(banker);
+//        parkPlace.sellHouse(banker);
+//        assertEquals(1, boardwalk.getNumHouses());
+//        assertEquals(1, parkPlace.getNumHouses());
+//    }
+
+
 }
