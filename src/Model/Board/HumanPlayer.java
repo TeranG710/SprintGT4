@@ -30,7 +30,7 @@ public class HumanPlayer extends Player {
      * Team member(s) responsible: Jamell
      */
     @Override
-    public void sellProperty(BoardSpace space, Player player) throws PlayerNotFoundException {
+    public void buyProperty(BoardSpace space, Player player) throws PlayerNotFoundException {
         banker.sellProperty(space, player);
     }
 
@@ -39,13 +39,13 @@ public class HumanPlayer extends Player {
      * Team member(s) responsible: Jamell
      */
     @Override
-    public void sellHouse(Property property, Player player) throws PlayerNotFoundException {
+    public void buyHouse(Property property, Player player) throws PlayerNotFoundException {
         banker.sellHouse(property, player);
     }
 
 
     @Override
-    public void sellHotel(Property property, Player player) throws PlayerNotFoundException{
+    public void buyHotel(Property property, Player player) throws PlayerNotFoundException{
         banker.sellHotel(property, player);
     }
 

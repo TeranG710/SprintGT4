@@ -52,7 +52,7 @@ public abstract class Player {
      * @param player The player buying the property
      * Team member(s) responsible: Jamell
      */
-    public abstract void sellProperty(BoardSpace space, Player player) throws PlayerNotFoundException;
+    public abstract void buyProperty(BoardSpace space, Player player) throws PlayerNotFoundException;
 
     /**
      * Buy a house on the specified space.
@@ -60,8 +60,7 @@ public abstract class Player {
      * @param player The player selling the house
      * Team member(s) responsible: Jamell
      */
-    public abstract void sellHouse(Property property, Player player) throws PlayerNotFoundException;
-
+    public abstract void buyHouse(Property property, Player player) throws PlayerNotFoundException;
 
     /**
      * Buy a hotel on the specified space.
@@ -69,7 +68,7 @@ public abstract class Player {
      * @param player The player selling the hotel
      * Team member(s) responsible: Jamell
      */
-    public abstract void sellHotel(Property property, Player player) throws PlayerNotFoundException;
+    public abstract void buyHotel(Property property, Player player) throws PlayerNotFoundException;
 
     /***
      * Move the player on the board.
@@ -131,7 +130,6 @@ public abstract class Player {
 
     /**
      * Get the game board.
-     *
      * @return The game board
      * Team member(s) responsible: Matt
      */
@@ -205,7 +203,6 @@ public abstract class Player {
 
     /**
      * Returns true if used get out of jail free card.
-     *
      * @return Number of get out of jail free cards
      * Team member(s) responsible: Deborah
      */

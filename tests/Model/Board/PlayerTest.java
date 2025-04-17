@@ -7,12 +7,8 @@ import Model.Game;
 import Model.Property.ColorGroup;
 import Model.Property.Property;
 import Model.Property.PropertyColor;
-import Model.Spaces.BoardSpace;
-import Model.Spaces.Railroad;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
 
 
 public class PlayerTest{
@@ -115,7 +111,7 @@ public class PlayerTest{
     }
 
     @Test
-    public void testCpuSellProperty() throws PlayerNotFoundException {
+    public void testCpuBuyProperty() throws PlayerNotFoundException {
         Banker banker = Banker.getInstance();
         GameBoard gameBoard = GameBoard.getInstance();
         Player player = new ComputerPlayer("TestPlayer", gameBoard);
@@ -128,7 +124,7 @@ public class PlayerTest{
         banker.addAvailableProperty(property2);
         banker.addTitleDeed(player, property);
         while(player.getProperties().size() < 2){
-            player.sellProperty(property2, player);
+            player.buyProperty(property2, player);
             if(player.getProperties().size() == 2){
                 break;
             }}
@@ -159,7 +155,7 @@ public class PlayerTest{
                 break;
             }
         }
-        player.sellHouse(property, player);
+        player.buyHouse(property, player);
         assertEquals(31, banker.getAvailableHouses());
     }
     @Test
@@ -197,7 +193,7 @@ public class PlayerTest{
             try {
                 Property propertyToBuyHouseOn = (i % 2 == 0) ? mediterraneanAvenue : balticAvenue;
                 int beforeHouses = banker.getAvailableHouses();
-                player.sellHouse(propertyToBuyHouseOn, player);
+                player.buyHouse(propertyToBuyHouseOn, player);
                 int afterHouses = banker.getAvailableHouses();
                 assertEquals(beforeHouses - 1, afterHouses, "Available houses should decrease by 1");
                 System.out.println("Bought house on " + propertyToBuyHouseOn.getName() + ". Available houses: " + afterHouses);
@@ -236,7 +232,7 @@ public class PlayerTest{
     }
 
     @Test
-    public void testPropertySellProperty() throws PlayerNotFoundException {
+    public void testPropertyBuyProperty() throws PlayerNotFoundException {
         Banker banker = Banker.getInstance();
         GameBoard gameBoard = GameBoard.getInstance();
         Player player = new HumanPlayer("TestPlayer", gameBoard);
@@ -255,7 +251,7 @@ public class PlayerTest{
                 PropertyColor.DARK_BLUE,
                 colorGroup);
         banker.addAvailableProperty(boardwalk);
-        player.sellProperty(boardwalk, player);
+        player.buyProperty(boardwalk, player);
         assertEquals(1, player.getProperties().size());
         assertEquals(1100, banker.getBalance(player));
     }

@@ -73,7 +73,6 @@ public class Banker {
     /**
      * Adds a player to the banker's list of players
      * if player is already in the list, throws PlayerNotFoundException
-     *
      * @param player Player to add
      * Team member(s) responsible: Jamell
      */
