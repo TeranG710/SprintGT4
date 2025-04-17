@@ -30,10 +30,11 @@ Before running the project, ensure you have the following installed:
     - Compile the project.
 
 3. **Run the Application:**
-     (In your IDE)<br>
+
+     #### (In your IDE)<br>
     - Locate the main class in the source files.
     - Run the main class to start the game.
-   <br>(In terminal)<br>
+     #### (In terminal)<br>
     - Navigate to the project directory and run the main class using:
     ```bash
     mvn clean package
