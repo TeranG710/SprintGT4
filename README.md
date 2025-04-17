@@ -13,8 +13,8 @@ multiple players to engage in the game, simulating property trading, rent paymen
 
 Before running the project, ensure you have the following installed:
 
-- Java Development Kit (JDK) 11 or later
-- Git (optional, for cloning the repository)
+- Java version 23 or higher
+- Git (for cloning the repository)
 - An ide with java support such as: Intellij Idea, Vscode
 
 ### Steps to Install
@@ -24,15 +24,21 @@ Before running the project, ensure you have the following installed:
    git clone https://github.com/AJamell/MonopolyProject.git
    cd MonopolyProject
    ```
-2. **Build the Project:**
+2. **Build the Project:** 
     - Open the project in your preferred IDE (e.g., IntelliJ IDEA, VS Code with Java support).
     - Ensure all dependencies are resolved.
     - Compile the project.
 
 3. **Run the Application:**
+     (In your IDE)<br>
     - Locate the main class in the source files.
     - Run the main class to start the game.
-
+   <br>(In terminal)<br>
+    - Navigate to the project directory and run the main class using:
+    ```bash
+    mvn clean package
+   java -jar target/MonopolyProject-1.0-SNAPSHOT.jar
+    ```
 ## How to Play
 
 ### Starting the Model.GameTests
