@@ -208,6 +208,21 @@ public class BankerTest {
         assertEquals(12, banker.getAvailableHotels());
     }
 
+    @Test
+    public void testSellHousePlayerHuman() throws PlayerNotFoundException {
+        Banker banker = Banker.getInstance();
+        GameBoard board = GameBoard.getInstance();
+        Player player = new HumanPlayer("TestPlayer", board);
+        banker.addPlayer(player);
+        ColorGroup colorGroup = new ColorGroup(PropertyColor.DARK_BLUE, 2);
+        Property property = new Property("Boardwalk", 39, 400,
+                50, new int[]{200, 600, 1400, 1700}, 2000,
+                200, PropertyColor.DARK_BLUE, colorGroup);
+        banker.addTitleDeed(player, property);
+        //player.sellHouse(property, player);
+        assertEquals(1, banker.getPlayerProperties(player).size());
+    }
+
 
 
 }

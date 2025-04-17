@@ -38,7 +38,8 @@ Before running the project, ensure you have the following installed:
     - Navigate to the project directory and run the main class using:
     ```bash
     mvn clean package
-   java -jar target/MonopolyProject-1.0-SNAPSHOT.jar
+    java -jar target/MonopolyProject-1.0-Project.jar 
+
     ```
 ## How to Play
 

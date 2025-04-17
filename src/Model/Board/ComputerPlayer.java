@@ -43,7 +43,7 @@ public class ComputerPlayer extends Player {
      * Team member(s) responsible: Jamell
      */
     @Override
-    public void sellProperty(BoardSpace space, Player player) throws PlayerNotFoundException {
+    public void buyProperty(BoardSpace space, Player player) throws PlayerNotFoundException {
         int chance = rand.nextInt(3) + 1;
         if (chance == 1) {
             banker.sellProperty(space, player);
@@ -58,7 +58,7 @@ public class ComputerPlayer extends Player {
      * Team member(s) responsible: Jamell
      */
     @Override
-    public void sellHouse(Property property, Player player) throws PlayerNotFoundException {
+    public void buyHouse(Property property, Player player) throws PlayerNotFoundException {
         int chance = rand.nextInt(3) + 1;
         if (chance == 1) {
             banker.sellHouse(property, player);
@@ -74,7 +74,7 @@ public class ComputerPlayer extends Player {
      * Team member(s) responsible: Jamell
      */
     @Override
-    public void sellHotel(Property property, Player player) throws PlayerNotFoundException {
+    public void buyHotel(Property property, Player player) throws PlayerNotFoundException {
         int chance = rand.nextInt(3) + 1;
         if (chance == 1) {
             banker.sellHotel(property, player);
