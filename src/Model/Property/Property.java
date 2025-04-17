@@ -540,15 +540,6 @@ public class Property extends BoardSpace {
     }
 
     /**
-     * Get the property color
-     * @return Property color
-     * Team member(s) responsible: Matt
-     */
-    public PropertyColor getColor() {
-        return color;
-    }
-
-    /**
      * Get the mortgage value of the property
      * @return Mortgage value
      * Team member(s) responsible: Matt

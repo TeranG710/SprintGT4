@@ -66,6 +66,25 @@ public class PropertyTest {
     }
 
     @Test
+    public void testHousePriceByColor() {
+        assertEquals(200, boardwalk.getHousePrice());
+        ColorGroup brownGroup = new ColorGroup(PropertyColor.BROWN, 2);
+        Property brownProperty = new Property(
+                "Brown Property",
+                1,
+                100,
+                10,
+                new int[]{50, 150, 300, 450},
+                500,
+                50,
+                PropertyColor.BROWN,
+                brownGroup
+        );
+        assertEquals(50, brownProperty.getHousePrice());
+    }
+
+
+    @Test
     public void testPropertyOwnership() {
         assertNull(boardwalk.getOwner());
         boardwalk.setOwner(owner);
@@ -247,6 +266,88 @@ public class PropertyTest {
         assertEquals(3, boardwalk.getNumHouses());
         assertFalse(boardwalk.sellHouse(banker));
     }
+
+    @Test
+    public void testSellHotelEvenly() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        parkPlace.setOwner(owner);
+        banker.deposit(owner, 10000);
+        for (int i = 0; i < 4; i++) {
+            if (boardwalk.canBuyHouse(banker)) {
+                assertTrue(boardwalk.buyHouse(banker));
+            }
+            if (parkPlace.canBuyHouse(banker)) {
+                assertTrue(parkPlace.buyHouse(banker));
+            }
+        }
+        assertTrue(boardwalk.buyHotel(banker));
+        assertTrue(parkPlace.buyHotel(banker));
+        assertTrue(boardwalk.sellHotel(banker));
+        assertFalse(boardwalk.hasHotel());
+        assertEquals(4, boardwalk.getNumHouses());
+    }
+
+    @Test
+    public void testOnlandingWithoutOwner() throws PlayerNotFoundException {
+        int intialBalance = banker.getBalance(otherPlayer);
+        boardwalk.onLanding(otherPlayer);
+    }
+
+    @Test
+    public void testOnLandingWithOwner() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        int initialBalance = banker.getBalance(owner);
+        int otherPlayerBalance = banker.getBalance(otherPlayer);
+        boardwalk.onLanding(otherPlayer);
+        assertEquals(otherPlayerBalance - boardwalk.calculateRent(otherPlayer), banker.getBalance(otherPlayer));
+        assertEquals(initialBalance + boardwalk.calculateRent(otherPlayer), banker.getBalance(owner));
+    }
+
+    @Test
+    public void testOnLandingOnOwnProperty() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        int initialBalance = banker.getBalance(owner);
+        boardwalk.onLanding(owner);
+        assertEquals(initialBalance, banker.getBalance(owner));
+    }
+    @Test
+    public void testLandingOnMortgagedProperty() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        int initialBalance = banker.getBalance(owner);
+        int otherPlayerBalance = banker.getBalance(otherPlayer);
+        boardwalk.mortgage();
+        boardwalk.onLanding(otherPlayer);
+        assertEquals(initialBalance + boardwalk.getMortgageValue(), banker.getBalance(owner));
+        assertEquals(otherPlayerBalance, banker.getBalance(otherPlayer));
+    }
+
+    @Test
+    public void testCantUnmortgageWithoutEnoughMoney() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        boardwalk.mortgage();
+        banker.withdraw(owner, banker.getBalance(owner));
+        assertFalse(boardwalk.unmortgage());
+        assertTrue(boardwalk.isMortgaged());
+    }
+
+    @Test
+    public void testCantUnmortgageWithoutOwner() throws PlayerNotFoundException {
+        assertFalse(boardwalk.canMortgage());
+        assertFalse(boardwalk.mortgage());
+        boardwalk.mortgage();
+        assertFalse(boardwalk.isMortgaged());
+    }
+
+    @Test
+    public void testCantMortgageMortgagedProperty() throws PlayerNotFoundException {
+        boardwalk.setOwner(owner);
+        boardwalk.mortgage();
+        assertFalse(boardwalk.canMortgage());
+        assertFalse(boardwalk.mortgage());
+        assertTrue(boardwalk.isMortgaged());
+    }
+
+
 
 
 
