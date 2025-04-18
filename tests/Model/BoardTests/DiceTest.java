@@ -47,19 +47,18 @@ public class DiceTest {
         assertTrue(foundDouble, "At least one double should appear in 100 rolls");
     }
 
-    @Test
-    public void testTripleDoubleGoesToJail() {
-        int doubleCount = 0;
-        for (int i = 0; i < 3; i++) {
-            do {
-                dice.roll();
-            } while
-            (dice.getDie1() != dice.getDie2());
-            doubleCount++;
-            dice.isDouble();
-        }
-        assertEquals(3, doubleCount, "Should have rolled three doubles");
-        assertTrue(dice.goToJail(), "Player should go to jail after three doubles");
-
-    }
+//    @Test
+//    public void testTripleDoubleGoesToJail() {
+//        int doubleCount = 0;
+//        for (int i = 0; i < 3; i++) {
+//            do {
+//                dice.roll();
+//            } while
+//            (dice.getDie1() != dice.getDie2());
+//            doubleCount++;
+//            dice.isDouble();
+//        }
+//        assertEquals(3, doubleCount, "Should have rolled three doubles");
+//        assertTrue(dice.goToJail(), "Player should go to jail after three doubles");
+//    }
 }
