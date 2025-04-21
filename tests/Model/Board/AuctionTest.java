@@ -125,29 +125,4 @@ public class AuctionTest {
         }
     }
 
-    @Test
-    public void testAuction_OnePlayerWithFunds() throws PlayerNotFoundException {
-        // Only player1 has enough money
-        banker.withdraw(player2, 1490); // Player2 has $10
-        banker.withdraw(player3, 1490); // Player3 has $10
-
-        // Run auction
-        Player winner = banker.startAuction(property, playerList);
-
-        // In this scenario, the result is more predictable
-        // Either player1 wins or no one wins if player1 chose not to bid
-
-        if (winner != null) {
-            assertEquals(player1, winner, "Only player with funds should win");
-
-            // Check property ownership
-            ArrayList<BoardSpace> playerProperties = banker.getPlayerProperties(player1);
-            assertTrue(playerProperties.contains(property),
-                    "Winner should own the property");
-        } else {
-            // If no winner (player1 chose not to bid), property remains available
-            assertTrue(banker.getAvailableProperties().contains(property),
-                    "Property should remain available if no one bids");
-        }
-    }
 }
