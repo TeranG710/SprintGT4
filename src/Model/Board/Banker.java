@@ -30,6 +30,12 @@ public class Banker {
     private HashMap<Player, Integer> playerBalances;
     private ArrayList<BoardSpace> availableProperties;
     private static Banker instance;
+    private boolean auctionInProgress;
+    private BoardSpace propertyBeingAuctioned;
+    private HashMap<Player, Boolean> auctionParticipants;
+    private Player highestBidder;
+    private int highestBid;
+    private static final int MINIMUM_BID_INCREMENT = 10;
 
     private Banker() {
         this.playerBalances = new HashMap<>();
@@ -474,4 +480,150 @@ public class Banker {
         instance = null;
     }
 
+    /**
+     * Starts an auction for a property that a player declined to purchase
+     * @param property The property to be auctioned
+     * @param players List of players who will participate in the auction
+     * @return The player who won the auction, or null if no one bid
+     * Team member(s) responsible: Giovanny Teran
+     */
+    public Player startAuction(BoardSpace property, ArrayList<Player> players) {
+        if (property == null || !availableProperties.contains(property) || players == null || players.isEmpty()) {
+            return null;
+        }
+
+        // Initialize auction
+        auctionInProgress = true;
+        propertyBeingAuctioned = property;
+        auctionParticipants = new HashMap<>();
+
+        // Add all players to the auction
+        for (Player player : players) {
+            if (playerBalances.containsKey(player)) {
+                auctionParticipants.put(player, true);
+            }
+        }
+
+        highestBidder = null;
+        highestBid = 0;
+
+        // Start the auction process
+        Player winner = processAuction();
+
+        // Complete the transaction if there was a winning bid
+        if (winner != null && highestBid > 0) {
+            try {
+                withdraw(winner, highestBid);
+                addTitleDeed(winner, property);
+                System.out.println(winner.getName() + " won the auction for " + property.getName() +
+                        " with a bid of $" + highestBid);
+            } catch (PlayerNotFoundException | InsufficientFundsException e) {
+                System.out.println("Error completing auction: " + e.getMessage());
+                return null;
+            }
+        } else {
+            System.out.println("No one bid on " + property.getName() + ", property remains with the bank.");
+        }
+
+        auctionInProgress = false;
+        return winner;
+    }
+
+    /**
+     * Processes the auction by rotating through players for bids
+     * @return The player who won the auction, or null if no one bid
+     * Team member(s) responsible: Giovanny Teran
+     */
+    private Player processAuction() {
+        // Continue auction until only one player remains
+        while (countActiveBidders() > 1) {
+            for (Player player : auctionParticipants.keySet()) {
+                // Skip players who have passed
+                if (!auctionParticipants.get(player)) {
+                    continue;
+                }
+
+                // Get player's bid
+                int playerBid = getBid(player);
+
+                // Process bid (if player passed, mark them as inactive)
+                if (playerBid <= 0) {
+                    System.out.println(player.getName() + " passed on bidding.");
+                    auctionParticipants.put(player, false);
+                }
+                // Process valid bid
+                else if (playerBid > highestBid) {
+                    highestBid = playerBid;
+                    highestBidder = player;
+                    System.out.println(player.getName() + " bid $" + playerBid);
+                }
+
+                // If only one bidder remains, end the auction
+                if (countActiveBidders() <= 1) {
+                    break;
+                }
+            }
+        }
+
+        // Find the last remaining player, if any
+        for (Player player : auctionParticipants.keySet()) {
+            if (auctionParticipants.get(player)) {
+                return player;
+            }
+        }
+
+        // Return the highest bidder if we have one
+        return highestBidder;
+    }
+
+    /**
+     * Gets a bid from a player - in a real implementation, this would interact with the UI
+     * This is a placeholder that should be replaced with actual UI interaction
+     * @param player The player who is bidding
+     * @return The bid amount, or 0 if the player passes
+     * Team member(s) responsible: Giovanny Teran
+     */
+    private int getBid(Player player) {
+        // This is where you would implement UI interaction to get a bid
+        // For simplicity in this example, we'll use a random value
+
+        try {
+            int playerBalance = getBalance(player);
+
+            // Check if player has enough money to make minimum bid
+            if (playerBalance <= highestBid) {
+                return 0; // Player passes
+            }
+
+            // Simulate a player decision (would be replaced by UI interaction)
+            int minBid = highestBid + MINIMUM_BID_INCREMENT;
+            int maxPossibleBid = Math.min(playerBalance, propertyBeingAuctioned.getPurchasePrice() * 2);
+
+            // Placeholder for demo - random decision to bid or pass
+            // In real implementation, this would get input from UI
+            if (new Random().nextBoolean() && maxPossibleBid > minBid) {
+                return minBid + new Random().nextInt(maxPossibleBid - minBid + 1);
+            } else {
+                return 0; // Pass
+            }
+
+        } catch (PlayerNotFoundException e) {
+            return 0; // Player passes if there's an error
+        }
+    }
+
+    /**
+     * Counts the number of players still active in the auction
+     * @return Number of active bidders
+     * Team member(s) responsible: Giovanny Teran
+     */
+    private int countActiveBidders() {
+        int count = 0;
+        for (boolean isActive : auctionParticipants.values()) {
+            if (isActive) {
+                count++;
+            }
+        }
+        return count;
+    }
 }
