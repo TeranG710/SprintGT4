@@ -24,13 +24,10 @@ public class CpuController {
     private GameBoard gameBoard;
     private Random random;
     
-    // Strategy parameters
     private double buyPropertyThreshold = 0.7; // 70% chance to buy property when landing
     private double mortgageThreshold = 0.5; // 50% chance to mortgage properties when low on cash
     private double bankruptcyThreshold = 300; // Consider selling properties if balance below $300
     private Map<BoardSpace, Integer> propertyValueEstimates;
-    
-    // Auction strategy parameters
     private double auctionBidChance = 0.6; // 60% chance to bid in auction
     private double maxBidPercentOfValue = 1.1; // Max bid as percentage of property price
     
@@ -74,9 +71,7 @@ public class CpuController {
             if (playerMoney < propertyPrice + 100) {
                 return false;
             }
-            
-            // Use the buyPropertyThreshold (70% chance) instead of 1/3
-            // This makes the CPU more likely to buy properties
+
             return random.nextDouble() < buyPropertyThreshold;
         } catch (PlayerNotFoundException e) {
             System.err.println("Error getting player balance: " + e.getMessage());

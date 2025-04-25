@@ -65,32 +65,22 @@ public class BankerController {
      */
     public boolean sellProperty(Property property, Player player) {
         try {
-            // Check for null arguments
             if (property == null || player == null) {
                 System.err.println("Error: Null property or player in sellProperty");
                 return false;
             }
-            
-            // Execute the transaction
             banker.sellProperty(property, player);
-            
-            // Update GUI if needed - ensure thread safety
             if (gui != null) {
-                // Get all players to update
                 ArrayList<Player> allPlayers = new ArrayList<>();
                 try {
                     allPlayers.addAll(banker.getAllPlayers());
                 } catch (Exception e) {
                     System.err.println("Error getting players for GUI update: " + e.getMessage());
                 }
-                
-                // Use final variables for lambda
                 final ArrayList<Player> players = allPlayers;
                 final Property prop = property;
                 final Player buyer = player;
                 final int price = property.getPurchasePrice();
-                
-                // Perform GUI updates on the EDT
                 if (SwingUtilities.isEventDispatchThread()) {
                     gui.updatePlayerInfo(players);
                     gui.updatePropertyOwnership(prop, buyer);

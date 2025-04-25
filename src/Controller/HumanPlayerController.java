@@ -59,8 +59,6 @@ public class HumanPlayerController {
         try {
             int balance = banker.getBalance(player);
             int price = property.getPurchasePrice();
-            
-            // If player can't afford the property, don't even show the dialog
             if (balance < price) {
                 JOptionPane.showMessageDialog(gui.getMainFrame(),
                         "You don't have enough money to buy " + property.getName() + ".\n" +
@@ -69,15 +67,11 @@ public class HumanPlayerController {
                 return false;
             }
             
-            // Use the enhanced property purchase dialog in the GUI
             boolean wantsToBuy = gui.showPropertyPurchaseDialog(property, balance);
             
             if (wantsToBuy) {
-                // Attempt to buy property
                 try {
                     banker.sellProperty(property, player);
-                    
-                    // Update GUI
                     gui.updatePlayerInfo(null);
                     gui.updatePropertyOwnership(property, player);
                     gui.displayMessage(player.getName() + " purchased " + property.getName() + " for $" + price);

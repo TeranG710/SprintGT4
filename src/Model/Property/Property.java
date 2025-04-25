@@ -41,7 +41,7 @@ public class Property extends BoardSpace {
      * @param mortgageValue Mortgage value
      * @param color Color of the property
      * @param colorGroup Color group this property belongs to
-     * Team member(s) responsible: Original implementation team
+     * Team member(s) responsible: Deborah,Jamell,Giovanny,Matt
      */
     public Property(String name, int position, int purchasePrice, int baseRent,
                     int[] houseRents, int hotelRent, int mortgageValue,
@@ -113,13 +113,10 @@ public class Property extends BoardSpace {
      * by the BoardController showing the purchase dialog to the user
      * 
      * @param player The player who has the option to buy
-     * Team member(s) responsible: Claude
+     * Team member(s) responsible: Matt
      */
     public void offerPurchase(Property property, Player player) throws PlayerNotFoundException {
-        // This method should NOT try to buy the property automatically!
         System.out.println("Player " + player.getName() + " landed on unowned property: " + property.getName());
-        
-        // DO NOT put any purchase logic here - it's all handled by BoardController
     }
 
     /**

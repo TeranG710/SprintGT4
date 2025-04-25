@@ -35,9 +35,7 @@ public class AuctionController {
 
     /**
      * Constructor for AuctionController.
-     * 
-     * @param banker The banker instance that manages game transactions
-     */
+     **/
     public AuctionController() {
         this.banker = Banker.getInstance();
         this.currentBids = new HashMap<>();
@@ -48,7 +46,6 @@ public class AuctionController {
 
     /**
      * Start an auction for a property.
-     * 
      * @param property The property being auctioned
      * @param players List of players participating in the auction
      * @param parentFrame The parent frame for the auction dialog
@@ -58,27 +55,17 @@ public class AuctionController {
         if (property == null || players == null || players.isEmpty()) {
             return null;
         }
-
         propertyForAuction = property;
         participatingPlayers = new ArrayList<>(players);
         currentHighestBid = 0;
         highestBidder = null;
         auctionInProgress = true;
-        
-        // Initialize current bids
         currentBids.clear();
         for (Player player : players) {
             currentBids.put(player, 0);
         }
-        
-        // Create and show auction dialog
         createAuctionDialog(parentFrame);
         auctionDialog.setVisible(true);
-        
-        // The auction will now run in its own dialog, and when it completes,
-        // this method will return the winning player.
-        
-        // Wait for auction to complete
         while (auctionInProgress) {
             try {
                 Thread.sleep(100);
@@ -101,11 +88,8 @@ public class AuctionController {
         auctionDialog.setSize(500, 400);
         auctionDialog.setLocationRelativeTo(parentFrame);
 
-        // Property information panel
         JPanel propertyPanel = new JPanel(new BorderLayout());
         propertyPanel.setBorder(BorderFactory.createTitledBorder("Property for Auction"));
-        
-        // Property name and information
         String propertyName = propertyForAuction.getName();
         int propertyPrice = 0;
         if (propertyForAuction instanceof Model.Property.Property) {
@@ -117,22 +101,17 @@ public class AuctionController {
                 "Market value: $" + propertyPrice + "</html>");
         propertyInfoLabel.setHorizontalAlignment(JLabel.CENTER);
         propertyPanel.add(propertyInfoLabel, BorderLayout.CENTER);
-        
-        // Auction status panel
         JPanel statusPanel = new JPanel(new GridLayout(2, 1));
         highestBidLabel = new JLabel("Current highest bid: $0 (None)");
         highestBidLabel.setHorizontalAlignment(JLabel.CENTER);
         highestBidLabel.setFont(new Font("Arial", Font.BOLD, 14));
         
-        // Timer
-        timeLeft = 30; // 30 seconds for auction
+        timeLeft = 30;
         timerLabel = new JLabel("Time remaining: " + timeLeft + " seconds");
         timerLabel.setHorizontalAlignment(JLabel.CENTER);
         
         statusPanel.add(highestBidLabel);
         statusPanel.add(timerLabel);
-        
-        // Set up timer
         auctionTimer = new Timer(1000, event -> {
             timeLeft--;
             timerLabel.setText("Time remaining: " + timeLeft + " seconds");
@@ -143,33 +122,26 @@ public class AuctionController {
             }
         });
         
-        // Players bidding panel
         JPanel playersPanel = new JPanel(new GridLayout(0, 1, 5, 5));
         playersPanel.setBorder(BorderFactory.createTitledBorder("Players"));
-        
         bidLabels.clear();
         bidButtons.clear();
-        
         for (Player player : participatingPlayers) {
             JPanel playerPanel = new JPanel(new BorderLayout());
             playerPanel.setBorder(BorderFactory.createEtchedBorder());
             
-            // Player info
             JLabel nameLabel = new JLabel(player.getName());
             nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
             
-            // Current bid
             JLabel bidLabel = new JLabel("Current bid: $0");
             bidLabels.put(player, bidLabel);
             
-            // Bid controls
             JPanel bidControlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JTextField bidField = new JTextField(5);
             JButton bidButton = new JButton("Place Bid");
             bidButtons.put(player, bidButton);
             
             if (player instanceof Model.Board.ComputerPlayer) {
-                // Computer players place bids automatically
                 bidField.setEnabled(false);
                 bidButton.setEnabled(false);
             } else {
@@ -188,7 +160,6 @@ public class AuctionController {
             
             JButton passButton = new JButton("Pass");
             passButton.addActionListener(event -> {
-                // Player is passing on this auction
                 participatingPlayers.remove(player);
                 playerPanel.setEnabled(false);
                 nameLabel.setEnabled(false);
@@ -197,13 +168,11 @@ public class AuctionController {
                 bidButton.setEnabled(false);
                 passButton.setEnabled(false);
                 
-                // Check if only one player remains
                 if (participatingPlayers.size() == 1) {
                     highestBidder = participatingPlayers.get(0);
                     currentHighestBid = Math.max(currentHighestBid, 1); // Minimum $1 bid
                     finishAuction();
                 } else if (participatingPlayers.isEmpty()) {
-                    // Nobody wants the property
                     finishAuction();
                 }
             });
@@ -223,15 +192,12 @@ public class AuctionController {
             playersPanel.add(playerPanel);
         }
         
-        // Add components to dialog
         auctionDialog.add(propertyPanel, BorderLayout.NORTH);
         auctionDialog.add(new JScrollPane(playersPanel), BorderLayout.CENTER);
         auctionDialog.add(statusPanel, BorderLayout.SOUTH);
         
-        // Start the auction timer
         auctionTimer.start();
         
-        // Trigger computer player bids
         triggerComputerBids();
     }
     
@@ -239,7 +205,6 @@ public class AuctionController {
      * Have computer players place bids automatically.
      */
     private void triggerComputerBids() {
-        // Computer players make their bids at random intervals
         for (Player player : participatingPlayers) {
             if (player instanceof Model.Board.ComputerPlayer) {
                 Timer cpuTimer = new Timer(2000 + (int)(Math.random() * 3000), event -> {
@@ -257,38 +222,31 @@ public class AuctionController {
                             basePrice = ((Model.Property.Property) propertyForAuction).getPurchasePrice();
                         }
                         
-                        // Computer decides if and how much to bid
                         double bidChance = Math.random();
-                        if (bidChance > 0.4) { // 60% chance to bid
+                        if (bidChance > 0.4) {
                             int maxBid = Math.min(playerMoney, basePrice);
                             int minBid = currentHighestBid + 5; // At least $5 more than current bid
                             
-                            // Computer won't bid more than 125% of property value
                             int maxWillingToPay = (int)(basePrice * 1.25);
                             maxBid = Math.min(maxBid, maxWillingToPay);
                             
                             if (maxBid >= minBid) {
-                                // Calculate bid amount (between min and max)
                                 int bidAmount = minBid + (int)(Math.random() * (maxBid - minBid) / 2);
                                 placeBid(player, bidAmount);
                             } else {
-                                // Can't afford or not willing to bid higher
                                 participatingPlayers.remove(player);
                                 bidLabels.get(player).setText("Passed");
                             }
                         } else {
-                            // Computer decided to pass
                             participatingPlayers.remove(player);
                             bidLabels.get(player).setText("Passed");
                         }
                         
-                        // Check if only one player remains
                         if (participatingPlayers.size() == 1) {
                             highestBidder = participatingPlayers.get(0);
                             currentHighestBid = Math.max(currentHighestBid, 1); // Minimum $1 bid
                             finishAuction();
                         } else if (participatingPlayers.isEmpty()) {
-                            // Nobody wants the property
                             finishAuction();
                         }
                     }
@@ -301,17 +259,14 @@ public class AuctionController {
     
     /**
      * Place a bid for a player.
-     * 
      * @param player The player placing the bid
      * @param amount The bid amount
      */
     private void placeBid(Player player, int amount) {
-        // Check if player is still participating
         if (!participatingPlayers.contains(player)) {
             return;
         }
         
-        // Check if player can afford the bid
         int playerMoney = 0;
         try {
             playerMoney = banker.getBalance(player);
@@ -329,7 +284,6 @@ public class AuctionController {
             return;
         }
         
-        // Check if bid is higher than current highest bid
         if (amount <= currentHighestBid) {
             JOptionPane.showMessageDialog(auctionDialog, 
                     "Your bid must be higher than the current highest bid of $" + currentHighestBid, 
@@ -337,16 +291,13 @@ public class AuctionController {
             return;
         }
         
-        // Update bid
         currentBids.put(player, amount);
         bidLabels.get(player).setText("Current bid: $" + amount);
         
-        // Update highest bid
         currentHighestBid = amount;
         highestBidder = player;
         highestBidLabel.setText("Current highest bid: $" + amount + " (" + player.getName() + ")");
         
-        // Add 10 seconds to the timer if less than 10 seconds remaining
         if (timeLeft < 10) {
             timeLeft += 10;
             if (timeLeft > 30) {
@@ -363,16 +314,13 @@ public class AuctionController {
         auctionTimer.stop();
         
         if (highestBidder != null) {
-            // Someone won the auction
             try {
-                // Transfer property to highest bidder
                 banker.sellProperty(propertyForAuction, highestBidder);
                 
-                // The banker sell method already charges the base price
                 int difference = currentHighestBid - ((Model.Property.Property) propertyForAuction).getPurchasePrice();
                 if (difference > 0) {
                     try {
-                        banker.withdraw(highestBidder, difference); // Withdraw the extra amount
+                        banker.withdraw(highestBidder, difference);
                     } catch (Exception ex) {
                         System.err.println("Error adjusting auction price: " + ex.getMessage());
                     }
@@ -387,8 +335,7 @@ public class AuctionController {
                 e.printStackTrace();
             }
         } else {
-            // Nobody won the auction
-            JOptionPane.showMessageDialog(auctionDialog, 
+            JOptionPane.showMessageDialog(auctionDialog,
                     "Nobody bid on " + propertyForAuction.getName() + ". The property remains with the bank.", 
                     "Auction Complete", JOptionPane.INFORMATION_MESSAGE);
         }

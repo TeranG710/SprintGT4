@@ -71,7 +71,7 @@ public class UtilitySpace extends BoardSpace {
      * Pay rent to the owner if the space is owned, otherwise buy the space
      *
      * @param player The player who landed on the space
-     *               Team member(s) responsible: Deborah
+     *Team member(s) responsible: Deborah
      */
     @Override
     public void onLanding(Player player) throws PlayerNotFoundException {

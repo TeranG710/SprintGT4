@@ -44,7 +44,6 @@ public class BoardController {
     private Map<String, ImageIcon> tokenImages;
     private Map<String, ImageIcon> cardImages;
     
-    // Current game state
     private Player currentPlayer;
     private boolean gameInProgress;
     private int doubleCount;
@@ -56,7 +55,7 @@ public class BoardController {
         this.game = Game.getInstance();
         this.gameBoard = game.getBoard();
         this.banker = Banker.getInstance();
-        this.turnManager = null; // Will be initialized when players are added
+        this.turnManager = null;
         this.dice = Dice.getInstance();
         this.players = new ArrayList<>();
         this.cpuControllers = new HashMap<>();
@@ -65,8 +64,6 @@ public class BoardController {
         this.cardImages = new HashMap<>();
         this.gameInProgress = false;
         this.doubleCount = 0;
-        
-        // Initialize token and card images
         loadTokenImages();
         loadCardImages();
     }
@@ -86,10 +83,7 @@ public class BoardController {
      * Set up action listeners for GUI components.
      */
     private void setupActionListeners() {
-        // Action listeners will be set up once the GUI is created
         if (gui == null) return;
-        
-        // Set up roll dice button listener
         gui.addRollDiceListener(event -> {
             if (gameInProgress && currentPlayer != null) {
                 int[] diceValues = rollDice();
@@ -103,8 +97,6 @@ public class BoardController {
                         "Cannot Roll Dice", JOptionPane.WARNING_MESSAGE);
             }
         });
-        
-        // Set up end turn button listener
         gui.addEndTurnListener(event -> {
             if (gameInProgress) {
                 endTurn();
@@ -115,9 +107,7 @@ public class BoardController {
             }
         });
         
-        // Set up new game button listener
         gui.addNewGameListener(event -> {
-            // Show dialog to get number of human and computer players
             JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
             
             panel.add(new JLabel("Human Players (1-4):"));
@@ -134,8 +124,6 @@ public class BoardController {
             if (result == JOptionPane.OK_OPTION) {
                 int humanCount = (Integer) humanSpinner.getValue();
                 int cpuCount = (Integer) cpuSpinner.getValue();
-                
-                // Get names for human players
                 ArrayList<String> humanNames = new ArrayList<>();
                 for (int i = 0; i < humanCount; i++) {
                     String name = JOptionPane.showInputDialog(gui.getMainFrame(), 
@@ -148,8 +136,6 @@ public class BoardController {
                     
                     humanNames.add(name);
                 }
-                
-                // Start the game
                 startGame(humanNames, cpuCount);
             }
         });
@@ -159,33 +145,24 @@ public class BoardController {
      * Load token images for players.
      */
     private void loadTokenImages() {
-        // Define token names and fallback colors
         String[] tokenNames = {"hat", "car", "dog", "shoe", "ship", "thimble", "wheelbarrow", "iron", "battleship", "boot"};
         Color[] tokenColors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, 
                               Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.PINK,
                               Color.DARK_GRAY, new Color(101, 67, 33)};
-        
-        // Check if resource folders exist
         File tokenDir = new File("resources/tokens");
         if (!tokenDir.exists()) {
             tokenDir.mkdirs();
             System.out.println("Created tokens directory");
         }
-        
-        // Process each token
         for (String tokenName : tokenNames) {
             boolean imageLoaded = false;
-            
-            // Try variations of the filename in the root directory
             String[] filenameVariations = {
                 tokenName + ".png",
                 tokenName.toLowerCase() + ".png",
                 tokenName.toUpperCase() + ".png",
-                // For "battleship" also try "battleship.png"
                 tokenName.equals("ship") ? "battleship.png" : null
             };
             
-            // Try each filename variation
             for (String filename : filenameVariations) {
                 if (filename == null) continue;
                 
@@ -193,7 +170,6 @@ public class BoardController {
                 if (rootTokenFile.exists()) {
                     try {
                         BufferedImage image = ImageIO.read(rootTokenFile);
-                        // Resize image to ensure proper dimensions
                         BufferedImage resizedImage = new BufferedImage(40, 40, BufferedImage.TYPE_INT_ARGB);
                         Graphics2D g2 = resizedImage.createGraphics();
                         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -203,24 +179,19 @@ public class BoardController {
                         tokenImages.put(tokenName, new ImageIcon(resizedImage));
                         System.out.println("Loaded token image from root directory: " + rootTokenFile.getAbsolutePath());
                         imageLoaded = true;
-                        break; // Break out of the filename variations loop
+                        break;
                     } catch (IOException e) {
                         System.err.println("Error loading token image from root: " + rootTokenFile.getAbsolutePath());
                     }
                 }
             }
-            
-            // If image was loaded from root directory, continue to next token
             if (imageLoaded) continue;
-            
-            // Check for image in resources directory
             String tokenPath = "resources/tokens/" + tokenName + ".png";
             File tokenFile = new File(tokenPath);
             
             if (tokenFile.exists()) {
                 try {
                     BufferedImage image = ImageIO.read(tokenFile);
-                    // Resize image to ensure proper dimensions
                     BufferedImage resizedImage = new BufferedImage(40, 40, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2 = resizedImage.createGraphics();
                     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -229,32 +200,25 @@ public class BoardController {
                     
                     tokenImages.put(tokenName, new ImageIcon(resizedImage));
                     System.out.println("Loaded token image from resources: " + tokenPath);
-                    continue; // Skip to next token if we found this one
+                    continue;
                 } catch (IOException e) {
                     System.err.println("Error loading token image from resources: " + tokenPath);
                 }
             }
             
-            // If we get here, we need to create a simple default icon
             int index = Arrays.asList(tokenNames).indexOf(tokenName);
             Color tokenColor = (index >= 0) ? tokenColors[index] : Color.GRAY;
-            
-            // Create a colored circle with the first letter of the token name
             int size = 40;
             BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2 = image.createGraphics();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            // Set background to transparent
             g2.setComposite(AlphaComposite.Clear);
             g2.fillRect(0, 0, size, size);
             g2.setComposite(AlphaComposite.SrcOver);
-            
-            // Draw a circle with the token color
             g2.setColor(tokenColor);
             g2.fillOval(4, 4, size - 8, size - 8);
             
-            // Draw a black border
+
             g2.setColor(Color.BLACK);
             g2.setStroke(new BasicStroke(2));
             g2.drawOval(4, 4, size - 8, size - 8);

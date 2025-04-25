@@ -34,7 +34,6 @@ public class ComputerPlayer extends Player {
         super("Cpu", board);
         banker = Banker.getInstance();
         rand = new Random();
-
     }
 
     /**

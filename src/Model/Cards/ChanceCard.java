@@ -123,32 +123,20 @@ public class ChanceCard extends Card {
     public void useCard(String message, Player player) throws PlayerNotFoundException {
         switch (message) {
             case "Advance to Boardwalk.":
-                try {
-                    // Instead of using the move method which may cause issues,
-                    // directly set the position to Boardwalk (39) and trigger onLanding
-                    player.setPosition(39);
-                    System.out.println("Chance Card: Player " + player.getName() + " advanced to Boardwalk (position 39)");
-                    
-                    // NOTE: We're not calling onLanding here since it's handled by the controller
-                } catch (Exception e) {
-                    System.err.println("Error advancing to Boardwalk: " + e.getMessage());
-                    e.printStackTrace();
+
+                int boardwalkSteps = calculateSteps(player.getPosition(), 39);
+                if (passesGo(player.getPosition(), boardwalkSteps)) {
+                    banker.deposit(player, 200);
                 }
+                player.move(player,boardwalkSteps);
+                System.out.println("Chance Card: Player " + player.getName() + " advanced to Boardwalk (position 39)");
                 break;
 
             case "Advance to Go (Collect $200).":
-                try {
-                    // Directly set position to GO (0)
-                    player.setPosition(0);
-                    System.out.println("Chance Card: Player " + player.getName() + " advanced to GO (position 0)");
-                    
-                    // Collect $200
-                    banker.deposit(player, 200);
-                    System.out.println("Chance Card: Player " + player.getName() + " collected $200 for reaching GO");
-                } catch (Exception e) {
-                    System.err.println("Error advancing to GO: " + e.getMessage());
-                    e.printStackTrace();
-                }
+                player.setPosition(0);
+                System.out.println("Chance Card: Player " + player.getName() + " advanced to GO (position 0)");
+                banker.deposit(player, 200);
+                System.out.println("Chance Card: Player " + player.getName() + " collected $200 for reaching GO");
                 break;
 
             case "Advance to Illinois Avenue. If you pass Go, collect $200.":

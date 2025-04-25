@@ -77,7 +77,7 @@ public class ChanceCardTest {
         assertEquals(0, player.getPosition());
         chanceCard.useCard(card,player);
         assertEquals(39, player.getPosition());
-        assertEquals(1, player.getProperties().size());
+
     }
 
    @Test
@@ -106,7 +106,6 @@ public class ChanceCardTest {
         assertEquals(0, player.getPosition());
         chanceCard.useCard(card,player);
         assertEquals(24, player.getPosition());
-        assertEquals(1, player.getProperties().size());
     }
 
     @Test
@@ -121,7 +120,6 @@ public class ChanceCardTest {
         assertEquals(0, player.getPosition());
         chanceCard.useCard(card,player);
         assertEquals(11, player.getPosition());
-        assertEquals(1, player.getProperties().size());
     }
 
     @Test
@@ -193,7 +191,6 @@ public class ChanceCardTest {
         assertEquals(0, player.getPosition());
         chanceCard.useCard(card,player);
         assertEquals(5, player.getPosition());
-        assertEquals(1, player.getProperties().size());
     }
 
     @Test

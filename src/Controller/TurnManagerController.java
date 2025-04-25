@@ -71,10 +71,7 @@ public class TurnManagerController {
         }
         
         try {
-            // Move the player
             int totalSpaces = dice.getSum();
-            
-            // Ensure player's previous position is correctly noted
             int oldPosition = currentPlayer.getPosition();
             
             // Move the player
