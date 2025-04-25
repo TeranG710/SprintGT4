@@ -129,7 +129,7 @@ public class Gui {
 
     /**
      * Constructor that initializes and displays the GUI.
-     * Team member(s) responsible: Matt, Claude
+     * Team member(s) responsible: Matt
      */
     public Gui() {
         initializeGameData();
@@ -1529,7 +1529,7 @@ public class Gui {
     
     /**
      * Create the control panel with game action buttons.
-     * Team member(s) responsible: Matt, Claude
+     * Team member(s) responsible: Matt
      */
     private void createControlPanel() {
         controlPanel = new JPanel();
@@ -1798,7 +1798,7 @@ public class Gui {
     
     /**
      * Create the property management panel for the tabbed interface.
-     * Team member(s) responsible: Claude
+     * Team member(s) responsible: matt
      */
     private JPanel createPropertyManagementPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -2278,7 +2278,7 @@ public class Gui {
     /**
      * Custom dialog for property purchase decisions.
      * Shows property details and gives the player options to buy or send to auction.
-     * Team member(s) responsible: Claude
+     * Team member(s) responsible: matt
      */
     public class PropertyPurchaseDialog extends JDialog {
         private boolean wantsToBuy = false;
@@ -2509,7 +2509,7 @@ public class Gui {
     
     /**
      * Create the trade panel for the tabbed interface.
-     * Team member(s) responsible: Claude
+     * Team member(s) responsible: matt
      */
     private JPanel createTradePanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -2643,7 +2643,7 @@ public class Gui {
     
     /**
      * Create the statistics panel for the tabbed interface.
-     * Team member(s) responsible: Claude
+     * Team member(s) responsible: matt
      */
     private JPanel createStatisticsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -3020,7 +3020,7 @@ public class Gui {
     
     /**
      * Calculate rent for a property with houses.
-     * Team member(s) responsible: Claude
+     * Team member(s) responsible: matt
      * 
      * @param propertyPrice The base purchase price of the property
      * @param houses The number of houses on the property (0-4)
@@ -3048,7 +3048,7 @@ public class Gui {
     
     /**
      * Calculate rent for a property with a hotel.
-     * Team member(s) responsible: Claude
+     * Team member(s) responsible: matt
      * 
      * @param propertyPrice The base purchase price of the property
      * @return The rent amount
@@ -3112,8 +3112,8 @@ public class Gui {
         
         // Log the calculated coordinates with clear markers
         System.out.println("===> POSITION " + position + " MAPPED TO COORDINATES: (" + 
-                         coordinates[0] + ", " + coordinates[1] + ")" + 
-                         " with player offset " + playerOffset);
+                            coordinates[0] + ", " + coordinates[1] + ")" + 
+                            " with player offset " + playerOffset);
 
         // Add small offset based on player number to prevent overlap
         coordinates[0] += (playerOffset % 2) * 15;
