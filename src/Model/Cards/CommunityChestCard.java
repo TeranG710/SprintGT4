@@ -125,6 +125,7 @@ public class CommunityChestCard extends Card {
             case "Advance to Go (Collect $200)":
                 int goSteps = calculateSteps(player.getPosition(), 0);
                 player.move(player, goSteps);
+                banker.deposit(player,200);
                 break;
 
             case "Bank error in your favor. Collect $200":

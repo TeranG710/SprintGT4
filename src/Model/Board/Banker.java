@@ -67,6 +67,16 @@ public class Banker {
     public ArrayList<BoardSpace> getAvailableProperties() {
         return availableProperties;
     }
+    
+    /**
+     * Get all players currently in the game.
+     * 
+     * @return List of all players in the game
+     * Team member(s) responsible: Claude
+     */
+    public ArrayList<Player> getAllPlayers() {
+        return new ArrayList<>(playerBalances.keySet());
+    }
 
     /**
      * Add a property to the banker's list of available properties
@@ -144,7 +154,7 @@ public class Banker {
      *
      * @param player Player to withdraw money from
      * @param amount Amount to withdraw
-     *               Team member(s) responsible: Jamell
+     * Team member(s) responsible: Jamell
      */
     public void withdraw(Player player, int amount) throws PlayerNotFoundException, InvalidTransactionException, InsufficientFundsException {
         if (!playerBalances.containsKey(player)) {
@@ -160,11 +170,14 @@ public class Banker {
     }
 
     /**
-     * Add title deeds of a players propertu
+     * Add title deed of a player's property
+     * Ensures player has an entry in titleDeeds map
      * Team member(s) responsible: Jamell
      */
     public void addTitleDeed(Player player, BoardSpace property) {
-        titleDeeds.putIfAbsent(player, new ArrayList<>());
+        if (!titleDeeds.containsKey(player)) {
+            titleDeeds.put(player, new ArrayList<>());
+        }
         titleDeeds.get(player).add(property);
         property.setOwner(player);
         availableProperties.remove(property);
@@ -197,10 +210,11 @@ public class Banker {
 
     /**
      * Get title deeds of a player
+     * If player has no properties yet, returns an empty list instead of throwing exception
      * Team member(s) responsible: Jamell
      */
     public ArrayList<BoardSpace> getPlayerProperties(Player player) throws PlayerNotFoundException {
-        if (!titleDeeds.containsKey(player)) {
+        if (!playerBalances.containsKey(player)) {
             throw new PlayerNotFoundException();
         }
         return new ArrayList<>(titleDeeds.get(player));
@@ -409,7 +423,7 @@ public class Banker {
 
     /**
      * Decrement the number of available houses
-     * @param i
+     * @param i increment decrement value
      */
     public void decrementAvailableHouses(int i) {
         if (availableHouses > 0) {
@@ -419,7 +433,7 @@ public class Banker {
 
     /**
      * Increment the number of available hotels
-     * @param i
+     * @param i increment value
      * Team member(s) responsible: Deborah
      */
     public void incrementAvailableHotels(int i) {
@@ -492,12 +506,10 @@ public class Banker {
             return null;
         }
 
-        // Initialize auction
         auctionInProgress = true;
         propertyBeingAuctioned = property;
         auctionParticipants = new HashMap<>();
 
-        // Add all players to the auction
         for (Player player : players) {
             if (playerBalances.containsKey(player)) {
                 auctionParticipants.put(player, true);
@@ -507,10 +519,8 @@ public class Banker {
         highestBidder = null;
         highestBid = 0;
 
-        // Start the auction process
         Player winner = processAuction();
 
-        // Complete the transaction if there was a winning bid
         if (winner != null && highestBid > 0) {
             try {
                 withdraw(winner, highestBid);
@@ -535,44 +545,36 @@ public class Banker {
      * Team member(s) responsible: Giovanny Teran
      */
     private Player processAuction() {
-        // Continue auction until only one player remains
         while (countActiveBidders() > 1) {
             for (Player player : auctionParticipants.keySet()) {
-                // Skip players who have passed
                 if (!auctionParticipants.get(player)) {
                     continue;
                 }
 
-                // Get player's bid
                 int playerBid = getBid(player);
 
-                // Process bid (if player passed, mark them as inactive)
                 if (playerBid <= 0) {
                     System.out.println(player.getName() + " passed on bidding.");
                     auctionParticipants.put(player, false);
                 }
-                // Process valid bid
                 else if (playerBid > highestBid) {
                     highestBid = playerBid;
                     highestBidder = player;
                     System.out.println(player.getName() + " bid $" + playerBid);
                 }
 
-                // If only one bidder remains, end the auction
                 if (countActiveBidders() <= 1) {
                     break;
                 }
             }
         }
 
-        // Find the last remaining player, if any
         for (Player player : auctionParticipants.keySet()) {
             if (auctionParticipants.get(player)) {
                 return player;
             }
         }
 
-        // Return the highest bidder if we have one
         return highestBidder;
     }
 
@@ -584,31 +586,25 @@ public class Banker {
      * Team member(s) responsible: Giovanny Teran
      */
     private int getBid(Player player) {
-        // This is where you would implement UI interaction to get a bid
-        // For simplicity in this example, we'll use a random value
 
         try {
             int playerBalance = getBalance(player);
 
-            // Check if player has enough money to make minimum bid
             if (playerBalance <= highestBid) {
-                return 0; // Player passes
+                return 0;
             }
 
-            // Simulate a player decision (would be replaced by UI interaction)
             int minBid = highestBid + MINIMUM_BID_INCREMENT;
             int maxPossibleBid = Math.min(playerBalance, propertyBeingAuctioned.getPurchasePrice() * 2);
 
-            // Placeholder for demo - random decision to bid or pass
-            // In real implementation, this would get input from UI
             if (new Random().nextBoolean() && maxPossibleBid > minBid) {
                 return minBid + new Random().nextInt(maxPossibleBid - minBid + 1);
             } else {
-                return 0; // Pass
+                return 0;
             }
 
         } catch (PlayerNotFoundException e) {
-            return 0; // Player passes if there's an error
+            return 0;
         }
     }
 

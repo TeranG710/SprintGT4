@@ -34,7 +34,6 @@ public class Game {
         this.board = GameBoard.getInstance();
         this.players = new ArrayList<>();
         this.inProgress = false;
-        this.board = GameBoard.getInstance();
     }
     /**
      * This method is used to get the instance of the game.

@@ -9,6 +9,7 @@
 package Model.Spaces;
 import Model.Board.Player;
 import Model.Cards.ChanceCard;
+import Model.Exceptions.PlayerNotFoundException;
 
 public class ChanceSpace extends BoardSpace {
 
@@ -73,7 +74,7 @@ public class ChanceSpace extends BoardSpace {
      * Team member(s) responsible: Deborah
      */
     @Override
-    public void onLanding(Player player) {
+    public void onLanding(Player player)  {
         String cardDrawn = chanceDeck.drawCard();
         //chanceDeck.useCard(cardDrawn,player);
         System.out.println(player.getName() + " drew a chance card: " + cardDrawn);

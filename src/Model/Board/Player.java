@@ -21,6 +21,7 @@ public abstract class Player {
     private boolean inJail;
     private int jailTurns;
     private Token token;
+    private String tokenName; // Added for GUI visualization
     private int getOutOfJailFreeCards = 0;
     private int position;
     private Banker banker;
@@ -39,6 +40,7 @@ public abstract class Player {
         this.jailTurns = 0;
         this.position = 0;
         this.banker = Banker.getInstance();
+        this.tokenName = "hat"; // Default token
     }
 
     public ArrayList<BoardSpace> getProperties() throws PlayerNotFoundException {
@@ -197,6 +199,26 @@ public abstract class Player {
      * @return Number of get out of jail free cards
      * Team member(s) responsible: Deborah
      */
+     
+    /**
+     * Get the token name for this player (used for GUI representation).
+     * 
+     * @return The token name
+     * Team member(s) responsible: Matt
+     */
+    public String getTokenName() {
+        return tokenName;
+    }
+    
+    /**
+     * Set the token name for this player (used for GUI representation).
+     * 
+     * @param tokenName The token name to set
+     * Team member(s) responsible: Matt
+     */
+    public void setTokenName(String tokenName) {
+        this.tokenName = tokenName;
+    }
     public boolean hasGetOutOfJailFreeCard() {
         return getOutOfJailFreeCards > 0;
     }
