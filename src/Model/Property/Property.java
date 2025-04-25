@@ -109,19 +109,17 @@ public class Property extends BoardSpace {
 
     /**
      * Offers the property for purchase to the given player
+     * This is a placeholder that doesn't do anything - the actual purchase logic is handled
+     * by the BoardController showing the purchase dialog to the user
+     * 
      * @param player The player who has the option to buy
-     * Team member(s) responsible: Matt
+     * Team member(s) responsible: Claude
      */
     public void offerPurchase(Property property, Player player) throws PlayerNotFoundException {
-        try {
-            banker.sellProperty(property, player);
-        } catch (Exception e) {
-            if (banker.getBalance(player) > purchasePrice) {
-                this.owner = player;
-                banker.withdraw(player,purchasePrice);
-                banker.addTitleDeed(player,property);
-            }
-        }
+        // This method should NOT try to buy the property automatically!
+        System.out.println("Player " + player.getName() + " landed on unowned property: " + property.getName());
+        
+        // DO NOT put any purchase logic here - it's all handled by BoardController
     }
 
     /**

@@ -61,8 +61,11 @@ public class HumanPlayer extends Player {
         }
         int newPosition = (getPosition() + spaces) % 40;
         setPosition(newPosition);
-        System.out.println(getName() + " moved " + newPosition + " spaces");
-        getBoard().getBoardElements()[newPosition].onLanding(player);
+        System.out.println(getName() + " moved to position " + newPosition);
+        
+        // BoardController will handle landing actions
+        // Let BoardController handle onLanding for Human players so UI can show purchase dialog
+        // Before manually triggering onLanding effects
     }
 
 

@@ -67,6 +67,16 @@ public class Banker {
     public ArrayList<BoardSpace> getAvailableProperties() {
         return availableProperties;
     }
+    
+    /**
+     * Get all players currently in the game.
+     * 
+     * @return List of all players in the game
+     * Team member(s) responsible: Claude
+     */
+    public ArrayList<Player> getAllPlayers() {
+        return new ArrayList<>(playerBalances.keySet());
+    }
 
     /**
      * Add a property to the banker's list of available properties
@@ -160,14 +170,24 @@ public class Banker {
     }
 
     /**
-     * Add title deeds of a players propertu
-     * Team member(s) responsible: Jamell
+     * Add title deed of a player's property
+     * Ensures player has an entry in titleDeeds map
+     * Team member(s) responsible: Jamell, Claude (updated)
      */
     public void addTitleDeed(Player player, BoardSpace property) {
-        titleDeeds.putIfAbsent(player, new ArrayList<>());
+        // Make sure player has an entry in titleDeeds map
+        if (!titleDeeds.containsKey(player)) {
+            titleDeeds.put(player, new ArrayList<>());
+        }
+        
+        // Add property to player's title deeds
         titleDeeds.get(player).add(property);
+        
+        // Set property owner and remove from available properties
         property.setOwner(player);
         availableProperties.remove(property);
+        
+        System.out.println("Added " + property.getName() + " to " + player.getName() + "'s title deeds");
     }
 
     /**
@@ -197,12 +217,23 @@ public class Banker {
 
     /**
      * Get title deeds of a player
-     * Team member(s) responsible: Jamell
+     * If player has no properties yet, returns an empty list instead of throwing exception
+     * Team member(s) responsible: Jamell, Claude (updated)
      */
     public ArrayList<BoardSpace> getPlayerProperties(Player player) throws PlayerNotFoundException {
-        if (!titleDeeds.containsKey(player)) {
+        // Check if player exists in player balances
+        if (!playerBalances.containsKey(player)) {
+            // Player not found in balances - this should not happen
+            System.err.println("Error: Player not found in balances");
             throw new PlayerNotFoundException();
         }
+        
+        // If player has no properties yet, just return an empty list
+        if (!titleDeeds.containsKey(player)) {
+            return new ArrayList<>();
+        }
+        
+        // Return a copy of the player's properties
         return new ArrayList<>(titleDeeds.get(player));
     }
 
