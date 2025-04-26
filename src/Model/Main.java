@@ -36,7 +36,7 @@ public class Main {
                         "- Property auctions\n" +
                         "- Computer players\n" +
                         "- Graphical tokens and cards",
-                        "Monopoly Advanced GUI", JOptionPane.INFORMATION_MESSAGE);
+                        "Monopoly", JOptionPane.INFORMATION_MESSAGE);
             }
         });
     }
