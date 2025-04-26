@@ -29,7 +29,7 @@ public class Main {
                 BoardController controller = new BoardController();
                 controller.initializeGui();
                 JOptionPane.showMessageDialog(null,
-                        "Welcome to Monopoly Advanced GUI!\n\n" +
+                        "Welcome to Monopoly\n\n" +
                         "Click 'New Game' to start a new game.\n" +
                         "You can choose the number of human and computer players.\n\n" +
                         "Features:\n" +
