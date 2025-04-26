@@ -808,7 +808,7 @@ public class Gui {
      * Team member(s) responsible: Matt
      */
     private void createMainFrame() {
-        mainFrame = new JFrame("Monopoly");
+        mainFrame = new JFrame("Monopoly Advanced GUI");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setResizable(true);
         mainFrame.setPreferredSize(new Dimension(1200, 800));
