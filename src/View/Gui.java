@@ -17,6 +17,7 @@ import Model.Spaces.BoardSpace;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
 
@@ -32,7 +33,11 @@ public class Gui {
     private JPanel playerInfoPanel;
     private JPanel dicePanel;
     private JPanel propertyPanel;
-    
+    private Image monopolyLogoImage;
+    private Image communityChestDeckImage;
+    private Image chanceCardDeckImage;
+
+
     // Message display
     private JLabel messageLabel;
 
@@ -788,7 +793,15 @@ public class Gui {
         } catch (Exception e) {
             System.err.println("Error loading space images: " + e.getMessage());
         }
-        
+        try {
+            monopolyLogoImage = new ImageIcon(getClass().getResource("/board/monopolyLogo.png")).getImage();
+        } catch (Exception e) {
+            System.err.println("Failed to load monopolyLogo.png: " + e.getMessage());
+        }
+        communityChestDeckImage = new ImageIcon(getClass().getResource("/board/communityChestDeck.png")).getImage();
+        chanceCardDeckImage = new ImageIcon(getClass().getResource("/board/chanceCardDeck.png")).getImage();
+
+
         // Initialize players
         players = new ArrayList<>();
         players.add(new PlayerData("Player 1", Color.RED, 0, 1500));
@@ -866,7 +879,7 @@ public class Gui {
 
     /**
      * Draw the Monopoly board with all spaces.
-     * Team member(s) responsible: Matt
+     * Team member(s) responsible: Matt and Deborah
      */
     private void drawBoard(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
@@ -884,16 +897,45 @@ public class Gui {
         drawHorizontalSpaces(g2d, false); // Top row
         drawVerticalSpaces(g2d, false);   // Right column
 
-        // Draw center
-        g2d.setFont(new Font("Arial", Font.BOLD, 40));
-        g2d.setColor(new Color(213, 15, 37)); // Monopoly red
-        g2d.drawString("MONOPOLY", BOARD_SIZE/2 - 120, BOARD_SIZE/2);
+        if (monopolyLogoImage != null) {
+            AffineTransform oldTransform = g2d.getTransform();
 
-        // Draw community chest and chance cards
-        g2d.setFont(new Font("Arial", Font.ITALIC, 14));
-        g2d.setColor(Color.BLUE);
-        g2d.drawString("Community Chest", BOARD_SIZE/2 - 70, BOARD_SIZE/2 - 50);
-        g2d.drawString("Chance", BOARD_SIZE/2 - 30, BOARD_SIZE/2 + 70);
+            g2d.rotate(Math.toRadians(-45), BOARD_SIZE / 2, BOARD_SIZE / 2);
+
+            int logoWidth = 400;
+            int logoHeight = 400;
+            int logoX = (BOARD_SIZE - logoWidth) / 2;
+            int logoY = (BOARD_SIZE - logoHeight) / 2;
+
+            g2d.drawImage(monopolyLogoImage, logoX, logoY, logoWidth, logoHeight, null);
+
+            g2d.setTransform(oldTransform);
+        } else {
+            System.out.println("monopolyLogoImage is null, not drawing logo.");
+        }
+
+        if (communityChestDeckImage != null) {
+            AffineTransform original = g2d.getTransform();
+            g2d.rotate(Math.toRadians(-45), BOARD_SIZE / 2, BOARD_SIZE / 2);
+            int chestWidth = 240;
+            int chestHeight = 190;
+            int chestX = 250;
+            int chestY = 50;
+            g2d.drawImage(communityChestDeckImage, chestX, chestY, chestWidth, chestHeight, null);
+            g2d.setTransform(original);
+        }
+
+        if (chanceCardDeckImage != null) {
+            AffineTransform originalChance = g2d.getTransform();
+            g2d.rotate(Math.toRadians(-45), BOARD_SIZE / 2, BOARD_SIZE / 2);
+            int chanceWidth = 150;
+            int chanceHeight = 110;
+            int chanceX = (3 * BOARD_SIZE) / 4 - 250;
+            int chanceY = (3 * BOARD_SIZE) / 4 + 30;
+            g2d.drawImage(chanceCardDeckImage, chanceX, chanceY, chanceWidth, chanceHeight, null);
+            g2d.setTransform(originalChance);
+        }
+
     }
 
     /**
