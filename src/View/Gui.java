@@ -782,14 +782,17 @@ public class Gui {
             // Load card images from resources
             ImageIcon chanceIcon = new ImageIcon(getClass().getClassLoader().getResource("cards/chance.png"));
             ImageIcon communityChestIcon = new ImageIcon(getClass().getClassLoader().getResource("cards/community_chest.png"));
-            
+            ImageIcon railroadIcon = new ImageIcon(getClass().getClassLoader().getResource("cards/monopolyTrain.png"));
+
             // Resize the images to fit in the board spaces
-            Image chanceImage = chanceIcon.getImage().getScaledInstance(SPACE_HEIGHT - 10, SPACE_WIDTH / 2, Image.SCALE_SMOOTH);
-            Image communityChestImage = communityChestIcon.getImage().getScaledInstance(SPACE_HEIGHT - 10, SPACE_WIDTH / 2, Image.SCALE_SMOOTH);
-            
+            Image chanceImage = chanceIcon.getImage().getScaledInstance(SPACE_HEIGHT - 10, SPACE_WIDTH -20, Image.SCALE_SMOOTH);
+            Image communityChestImage = communityChestIcon.getImage().getScaledInstance(SPACE_HEIGHT - 10, SPACE_WIDTH -20, Image.SCALE_SMOOTH);
+            Image railroadImage = railroadIcon.getImage().getScaledInstance(SPACE_HEIGHT - 10, SPACE_WIDTH -20, Image.SCALE_SMOOTH);
+
             // Store the images in the map
             spaceImages.put("Chance", chanceImage);
             spaceImages.put("Community Chest", communityChestImage);
+            spaceImages.put("Railroad", railroadImage);
         } catch (Exception e) {
             System.err.println("Error loading space images: " + e.getMessage());
         }
@@ -1049,10 +1052,10 @@ public class Gui {
 
             // Set color if special spaces (Chance, Chest, Tax)
             if (spaceName.contains("Chance")) {
-                g2d.setColor(new Color(255, 222, 173)); // Light orange
+                g2d.setColor(BOARD_BACKGROUND_COLOR);
                 g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
             } else if (spaceName.contains("Community Chest")) {
-                g2d.setColor(new Color(230, 230, 250)); // Lavender
+                g2d.setColor(BOARD_BACKGROUND_COLOR);
                 g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
             } else if (spaceName.contains("Tax")) {
                 g2d.setColor(new Color(192, 192, 192)); // Silver
@@ -1083,15 +1086,52 @@ public class Gui {
             // Draw space special icons or labels
             if (spaceName.contains("Chance") && spaceImages.containsKey("Chance")) {
                 Image img = spaceImages.get("Chance");
-                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
+                int iconSize = Math.min(SPACE_HEIGHT, SPACE_WIDTH) / 2;
+                int imgX = x + (SPACE_HEIGHT - iconSize) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(img, imgX, imgY, null);
-            } else if (spaceName.contains("Community Chest") && spaceImages.containsKey("Community Chest")) {
+
+                g2d.drawImage(img, imgX, imgY, iconSize, iconSize, null);
+
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(new Font("Arial", Font.BOLD, 10));
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth("CHANCE");
+                int textX = x + (SPACE_HEIGHT - textWidth) / 2;
+                int textY = y + iconSize + 20;
+
+                g2d.drawString("CHANCE", textX, textY);
+            }
+            else if (spaceName.contains("Community Chest") && spaceImages.containsKey("Community Chest")) {
+                g2d.setColor(BOARD_BACKGROUND_COLOR);
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+
                 Image img = spaceImages.get("Community Chest");
-                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
+                int iconSize = Math.min(SPACE_HEIGHT, SPACE_WIDTH) / 2;
+                int imgX = x + (SPACE_HEIGHT - iconSize) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(img, imgX, imgY, null);
-            } else if (spaceName.contains("Electric Company")) {
+
+                g2d.drawImage(img, imgX, imgY, iconSize, iconSize, null);
+
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(new Font("Arial", Font.BOLD, 10));
+
+                FontMetrics fm = g2d.getFontMetrics();
+
+                String line1 = "COMMUNITY";
+                String line2 = "CHEST";
+
+                int line1Width = fm.stringWidth(line1);
+                int line1X = x + (SPACE_HEIGHT - line1Width) / 2;
+                int line1Y = y + iconSize + 18;
+
+                int line2Width = fm.stringWidth(line2);
+                int line2X = x + (SPACE_HEIGHT - line2Width) / 2;
+                int line2Y = line1Y + 10;
+
+                g2d.drawString(line1, line1X, line1Y);
+                g2d.drawString(line2, line2X, line2Y);
+            }
+            else if (spaceName.contains("Electric Company")) {
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
                 String emoji = "💡"; // Lightbulb
@@ -1143,18 +1183,30 @@ public class Gui {
                 }
             }
 
-            // Railroads abbreviation (draw separately, no overlap)
             if (isRailroad(spaceName)) {
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Arial", Font.BOLD, 7));
-                String abbreviation = spaceName.replace("Railroad", "RR").trim();
+
+                if (spaceImages.containsKey("Railroad")) {
+                    Image railroadImg = spaceImages.get("Railroad");
+
+                    int imgWidth = SPACE_HEIGHT - 20;
+                    int imgHeight = (SPACE_WIDTH / 2);
+
+                    int imgX = x + (SPACE_HEIGHT - imgWidth) / 2;
+                    int imgY = y + 5;
+
+                    g2d.drawImage(railroadImg, imgX, imgY, imgWidth, imgHeight, null);
+                }
+
                 FontMetrics fm = g2d.getFontMetrics();
+
+                String abbreviation = spaceName.replace("Railroad", "RR").trim();
                 int textWidth = fm.stringWidth(abbreviation);
                 int textX = x + (SPACE_HEIGHT - textWidth) / 2;
-                int textY = y + SPACE_WIDTH / 2;
+                int textY = y + SPACE_WIDTH / 2 + 10;
                 g2d.drawString(abbreviation, textX, textY);
 
-                // Draw railroad price too
                 if (positionToPrice.containsKey(position)) {
                     String price = "₩" + positionToPrice.get(position);
                     int priceWidth = fm.stringWidth(price);
@@ -1163,6 +1215,7 @@ public class Gui {
                     g2d.drawString(price, priceX, priceY);
                 }
             }
+
 
             // Ownership mark (small dot)
             for (PlayerData player : players) {
@@ -1195,10 +1248,10 @@ public class Gui {
 
             // Special spaces: Chance, Chest, Tax
             if (spaceName.contains("Chance")) {
-                g2d.setColor(new Color(255, 222, 173));
+                g2d.setColor(BOARD_BACKGROUND_COLOR);
                 g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
             } else if (spaceName.contains("Community Chest")) {
-                g2d.setColor(new Color(230, 230, 250));
+                g2d.setColor(BOARD_BACKGROUND_COLOR);
                 g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
             } else if (spaceName.contains("Tax")) {
                 g2d.setColor(new Color(192, 192, 192));
@@ -1229,14 +1282,49 @@ public class Gui {
             // Draw special space images
             if (spaceName.contains("Chance") && spaceImages.containsKey("Chance")) {
                 Image img = spaceImages.get("Chance");
-                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
+                int iconSize = Math.min(SPACE_HEIGHT, SPACE_WIDTH) / 2;
+                int imgX = x + (SPACE_HEIGHT - iconSize) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(img, imgX, imgY, null);
+
+                g2d.drawImage(img, imgX, imgY, iconSize, iconSize, null);
+
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(new Font("Arial", Font.BOLD, 10));
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth("CHANCE");
+                int textX = x + (SPACE_HEIGHT - textWidth) / 2;
+                int textY = y + iconSize + 20;
+
+                g2d.drawString("CHANCE", textX, textY);
             } else if (spaceName.contains("Community Chest") && spaceImages.containsKey("Community Chest")) {
+                g2d.setColor(BOARD_BACKGROUND_COLOR);
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+
                 Image img = spaceImages.get("Community Chest");
-                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
+                int iconSize = Math.min(SPACE_HEIGHT, SPACE_WIDTH) / 2;
+                int imgX = x + (SPACE_HEIGHT - iconSize) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(img, imgX, imgY, null);
+
+                g2d.drawImage(img, imgX, imgY, iconSize, iconSize, null);
+
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(new Font("Arial", Font.BOLD, 10));
+
+                FontMetrics fm = g2d.getFontMetrics();
+
+                String line1 = "COMMUNITY";
+                String line2 = "CHEST";
+
+                int line1Width = fm.stringWidth(line1);
+                int line1X = x + (SPACE_HEIGHT - line1Width) / 2;
+                int line1Y = y + iconSize + 18;
+
+                int line2Width = fm.stringWidth(line2);
+                int line2X = x + (SPACE_HEIGHT - line2Width) / 2;
+                int line2Y = line1Y + 10;
+
+                g2d.drawString(line1, line1X, line1Y);
+                g2d.drawString(line2, line2X, line2Y);
             } else if (spaceName.contains("Electric Company")) {
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
@@ -1297,23 +1385,24 @@ public class Gui {
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Arial", Font.BOLD, 7));
 
-                String abbreviation;
-                if (spaceName.contains("Reading")) {
-                    abbreviation = "Reading RR";
-                } else if (spaceName.contains("Pennsylvania")) {
-                    abbreviation = "Penn RR";
-                } else if (spaceName.contains("B. & O.")) {
-                    abbreviation = "B&O RR";
-                } else if (spaceName.contains("Short Line")) {
-                    abbreviation = "Short RR";
-                } else {
-                    abbreviation = "RR"; // fallback
+                if (spaceImages.containsKey("Railroad")) {
+                    Image railroadImg = spaceImages.get("Railroad");
+
+                    int imgWidth = SPACE_HEIGHT - 20;
+                    int imgHeight = (SPACE_WIDTH / 2);
+
+                    int imgX = x + (SPACE_HEIGHT - imgWidth) / 2;
+                    int imgY = y + 5;
+
+                    g2d.drawImage(railroadImg, imgX, imgY, imgWidth, imgHeight, null);
                 }
 
                 FontMetrics fm = g2d.getFontMetrics();
+
+                String abbreviation = spaceName.replace("Railroad", "RR").trim();
                 int textWidth = fm.stringWidth(abbreviation);
                 int textX = x + (SPACE_HEIGHT - textWidth) / 2;
-                int textY = y + SPACE_WIDTH / 2;
+                int textY = y + SPACE_WIDTH / 2 + 10;
                 g2d.drawString(abbreviation, textX, textY);
 
                 if (positionToPrice.containsKey(position)) {
