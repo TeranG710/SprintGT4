@@ -37,11 +37,12 @@ public class Gui {
     private JLabel messageLabel;
 
     // Board dimensions
-    private static final int BOARD_SIZE = 700;
+    private static final int BOARD_SIZE = 740;
     private static final int SPACE_WIDTH = BOARD_SIZE / 11;
     private static final int SPACE_HEIGHT = BOARD_SIZE / 11;
 
     // Property colors
+    private static final Color BOARD_BACKGROUND_COLOR = new Color(226, 240, 217);
     private static final Color BROWN = new Color(150, 75, 0);
     private static final Color LIGHT_BLUE = new Color(170, 224, 250);
     private static final Color PINK = new Color(217, 58, 150);
@@ -197,6 +198,8 @@ public class Gui {
         messageLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         gamePanel.add(messageLabel, BorderLayout.NORTH);
 
+        mainFrame.setPreferredSize(new Dimension(1200, 900));
+
         mainFrame.pack();
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setVisible(true);
@@ -344,7 +347,11 @@ public class Gui {
             SwingUtilities.invokeLater(() -> boardPanel.repaint());
         }
     }
-    
+    private boolean isRailroad(String name) {
+        return name.contains("Railroad") || name.contains("Short Line");
+    }
+
+
     /**
      * Update the dice display with new values.
      * Thread-safe implementation that ensures UI updates happen
@@ -825,7 +832,7 @@ public class Gui {
         };
 
         boardPanel.setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
-        boardPanel.setBackground(new Color(226, 240, 217)); // Light green background
+        boardPanel.setBackground(BOARD_BACKGROUND_COLOR); // Light green background
 
         // Add mouse listener to show property info on hover
         boardPanel.addMouseMotionListener(new MouseMotionAdapter() {
@@ -975,7 +982,7 @@ public class Gui {
 
     /**
      * Draw horizontal spaces (top and bottom rows).
-     * Team member(s) responsible: Matt
+     * Team member(s) responsible: Matt and Deborah
      */
     private void drawHorizontalSpaces(Graphics2D g2d, boolean bottom) {
         int y = bottom ? BOARD_SIZE - SPACE_WIDTH : 0;
@@ -983,149 +990,110 @@ public class Gui {
         for (int i = 1; i < 10; i++) {
             int x;
             int position;
-            // Bottom row: spaces are drawn from right to left
-            // Top row: spaces should be drawn from left to right (after Free Parking)
+
             if (bottom) {
                 x = BOARD_SIZE - SPACE_HEIGHT - i * SPACE_HEIGHT;
-                // Bottom row: GO (0) is at right corner, then positions 1-9 from right to left
                 position = i;
             } else {
-                // For top row, we go left to right starting after Free Parking (position 20)
                 x = SPACE_HEIGHT + (i - 1) * SPACE_HEIGHT;
                 position = 20 + i;
             }
 
-            // Set space color
-            if (positionToName.get(position).contains("Chance")) {
-                g2d.setColor(new Color(255, 222, 173)); // Light orange for Chance
-            } else if (positionToName.get(position).contains("Community Chest")) {
-                g2d.setColor(new Color(230, 230, 250)); // Lavender for Community Chest
-            } else if (positionToName.get(position).contains("Tax")) {
-                g2d.setColor(new Color(192, 192, 192)); // Silver for Tax spaces
+            // Always fill white background first
+            g2d.setColor(BOARD_BACKGROUND_COLOR);
+            g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+
+            String spaceName = positionToName.get(position);
+
+            // Set color if special spaces (Chance, Chest, Tax)
+            if (spaceName.contains("Chance")) {
+                g2d.setColor(new Color(255, 222, 173)); // Light orange
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+            } else if (spaceName.contains("Community Chest")) {
+                g2d.setColor(new Color(230, 230, 250)); // Lavender
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+            } else if (spaceName.contains("Tax")) {
+                g2d.setColor(new Color(192, 192, 192)); // Silver
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
             } else {
-                // Get property color or use default white
-                String propertyName = positionToName.get(position);
-                g2d.setColor(propertyColors.containsKey(propertyName) ?
-                        propertyColors.get(propertyName) : Color.WHITE);
+                // Regular properties (NOT Railroad, NOT Utility)
+                if (propertyColors.containsKey(spaceName) &&
+                        !isRailroad(spaceName) &&
+                        !spaceName.contains("Company") &&
+                        !spaceName.contains("Works")) {
+
+                    Color stripeColor = propertyColors.get(spaceName);
+                    g2d.setColor(stripeColor);
+
+                    int stripeHeight = SPACE_WIDTH / 5; // Thin stripe
+                    if (bottom) {
+                        g2d.fillRect(x, y, SPACE_HEIGHT, stripeHeight);
+                    } else {
+                        g2d.fillRect(x, y + SPACE_WIDTH - stripeHeight, SPACE_HEIGHT, stripeHeight);
+                    }
+                }
             }
 
-            // Draw the space
-            g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+            // Draw the black border
             g2d.setColor(Color.BLACK);
             g2d.drawRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
-            
-            // Draw special space images for non-property spaces
-            String spaceName = positionToName.get(position);
+
+            // Draw space special icons or labels
             if (spaceName.contains("Chance") && spaceImages.containsKey("Chance")) {
-                // Draw chance card image
-                Image chanceImage = spaceImages.get("Chance");
-                int imgX = x + (SPACE_HEIGHT - chanceImage.getWidth(null)) / 2;
+                Image img = spaceImages.get("Chance");
+                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(chanceImage, imgX, imgY, null);
+                g2d.drawImage(img, imgX, imgY, null);
             } else if (spaceName.contains("Community Chest") && spaceImages.containsKey("Community Chest")) {
-                // Draw community chest image
-                Image communityChestImage = spaceImages.get("Community Chest");
-                int imgX = x + (SPACE_HEIGHT - communityChestImage.getWidth(null)) / 2;
+                Image img = spaceImages.get("Community Chest");
+                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(communityChestImage, imgX, imgY, null);
+                g2d.drawImage(img, imgX, imgY, null);
             } else if (spaceName.contains("Electric Company")) {
-                // Draw lightbulb emoji
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
-                String lightbulbEmoji = "💡"; // Lightbulb emoji
+                String emoji = "💡"; // Lightbulb
                 FontMetrics fm = g2d.getFontMetrics();
-                int emojiWidth = fm.stringWidth(lightbulbEmoji);
+                int emojiWidth = fm.stringWidth(emoji);
                 int emojiX = x + (SPACE_HEIGHT - emojiWidth) / 2;
                 int emojiY = y + SPACE_WIDTH / 2 + 10;
-                g2d.drawString(lightbulbEmoji, emojiX, emojiY);
+                g2d.drawString(emoji, emojiX, emojiY);
             } else if (spaceName.contains("Income Tax")) {
-                // Draw "Pay $200 or 10%" label
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Arial", Font.BOLD, 9));
-                String taxLabel = "Pay $200";
-                FontMetrics labelFm = g2d.getFontMetrics();
-                int labelWidth = labelFm.stringWidth(taxLabel);
-                int labelX = x + (SPACE_HEIGHT - labelWidth) / 2;
-                int labelY = y + SPACE_WIDTH / 4;
-                g2d.drawString(taxLabel, labelX, labelY);
-                
-                // Draw "or 10%" on next line
-                String percentLabel = "or 10%";
-                int percentWidth = labelFm.stringWidth(percentLabel);
-                int percentX = x + (SPACE_HEIGHT - percentWidth) / 2;
-                int percentY = y + SPACE_WIDTH / 4 + 12;
-                g2d.drawString(percentLabel, percentX, percentY);
-                
-                // Draw money bag emoji
+                g2d.drawString("Pay ₩200", x + SPACE_HEIGHT / 4, y + SPACE_WIDTH / 3);
+                g2d.drawString("or 10%", x + SPACE_HEIGHT / 4, y + SPACE_WIDTH / 2);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
-                String moneyEmoji = "💰"; // Money bag emoji
-                FontMetrics fm = g2d.getFontMetrics();
-                int emojiWidth = fm.stringWidth(moneyEmoji);
-                int emojiX = x + (SPACE_HEIGHT - emojiWidth) / 2;
-                int emojiY = y + SPACE_WIDTH / 2 + 10;
-                g2d.drawString(moneyEmoji, emojiX, emojiY);
+                g2d.drawString("💰", x + SPACE_HEIGHT / 3, y + SPACE_WIDTH / 2 + 20);
             } else if (spaceName.contains("Luxury Tax")) {
-                // Draw "Pay $75" label
                 g2d.setColor(Color.BLACK);
-                g2d.setFont(new Font("Arial", Font.BOLD, 10));
-                String taxLabel = "Pay $75";
-                FontMetrics labelFm = g2d.getFontMetrics();
-                int labelWidth = labelFm.stringWidth(taxLabel);
-                int labelX = x + (SPACE_HEIGHT - labelWidth) / 2;
-                int labelY = y + SPACE_WIDTH / 3;
-                g2d.drawString(taxLabel, labelX, labelY);
-                
-                // Draw diamond emoji
+                g2d.setFont(new Font("Arial", Font.BOLD, 9));
+                g2d.drawString("Pay ₩75", x + SPACE_HEIGHT / 4, y + SPACE_WIDTH / 3);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
-                String diamondEmoji = "💎"; // Diamond emoji
-                FontMetrics fm = g2d.getFontMetrics();
-                int emojiWidth = fm.stringWidth(diamondEmoji);
-                int emojiX = x + (SPACE_HEIGHT - emojiWidth) / 2;
-                int emojiY = y + SPACE_WIDTH / 2 + 10;
-                g2d.drawString(diamondEmoji, emojiX, emojiY);
+                g2d.drawString("💎", x + SPACE_HEIGHT / 3, y + SPACE_WIDTH / 2 + 20);
             }
+            if (propertyColors.containsKey(spaceName) &&
+                    !isRailroad(spaceName) &&
+                    !spaceName.contains("Company") &&
+                    !spaceName.contains("Works")) {
 
-            // Add color bar for properties (not utilities or railroads)
-            if (propertyColors.containsKey(positionToName.get(position)) &&
-                    !positionToName.get(position).contains("Railroad") &&
-                    !positionToName.get(position).contains("Company") &&
-                    !positionToName.get(position).contains("Works")) {
-                int barHeight = SPACE_WIDTH / 5;
-                if (bottom) {
-                    g2d.setColor(g2d.getColor().darker());
-                    g2d.fillRect(x, y, SPACE_HEIGHT, barHeight);
-                } else {
-                    g2d.setColor(g2d.getColor().darker());
-                    g2d.fillRect(x, y + SPACE_WIDTH - barHeight, SPACE_HEIGHT, barHeight);
-                }
-                
-                // Add property name
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Arial", Font.PLAIN, 8));
                 FontMetrics fm = g2d.getFontMetrics();
-                String propertyName = positionToName.get(position);
-                
-                // Split name to fit in the space
-                String[] words = propertyName.split(" ");
-                int yOffset = bottom ? y + barHeight + 10 : y + SPACE_WIDTH - barHeight - 5;
-                
+
+                String[] words = spaceName.split(" ");
+                int yOffset = bottom ? y + SPACE_WIDTH / 3 : y + SPACE_WIDTH / 2;
+
                 for (int w = 0; w < words.length; w++) {
                     int textWidth = fm.stringWidth(words[w]);
                     int textX = x + (SPACE_HEIGHT - textWidth) / 2;
                     int textY = yOffset + (w * 10);
-                    
-                    // Make sure text is within space boundary
-                    if (bottom && textY < y + SPACE_WIDTH - 5) {
-                        g2d.drawString(words[w], textX, textY);
-                    } else if (!bottom && textY > y + 15) {
-                        g2d.drawString(words[w], textX, textY - (words.length * 10));
-                    }
+                    g2d.drawString(words[w], textX, textY);
                 }
-                
-                // Add price if available
+
                 if (positionToPrice.containsKey(position)) {
                     g2d.setFont(new Font("Arial", Font.BOLD, 8));
-                    String price = "$" + positionToPrice.get(position);
+                    String price = "₩" + positionToPrice.get(position);
                     int priceWidth = fm.stringWidth(price);
                     int priceX = x + (SPACE_HEIGHT - priceWidth) / 2;
                     int priceY = bottom ? y + SPACE_WIDTH - 5 : y + 12;
@@ -1133,198 +1101,145 @@ public class Gui {
                 }
             }
 
-            // Draw railroads
-            if (positionToName.get(position).contains("Railroad")) {
+            // Railroads abbreviation (draw separately, no overlap)
+            if (isRailroad(spaceName)) {
                 g2d.setColor(Color.BLACK);
-                
-                // Get the railroad name and abbreviate it
-                String railroadName = positionToName.get(position);
-                String abbreviation;
-                
-                if (railroadName.contains("Reading")) {
-                    abbreviation = "Reading RR";
-                } else if (railroadName.contains("Pennsylvania")) {
-                    abbreviation = "Penn RR";
-                } else if (railroadName.contains("B. & O.")) {
-                    abbreviation = "B&O RR";
-                } else if (railroadName.contains("Short Line")) {
-                    abbreviation = "Short RR";
-                } else {
-                    abbreviation = "RR"; // Fallback
-                }
-                
-                int trainSize = SPACE_HEIGHT / 2;
-                int trainX = x + SPACE_HEIGHT/2 - trainSize/2;
-                int trainY = bottom ? y + SPACE_WIDTH/2 - 5 : y + SPACE_WIDTH/2 - 5;
-                
-                // Use smaller font to fit the name
                 g2d.setFont(new Font("Arial", Font.BOLD, 7));
+                String abbreviation = spaceName.replace("Railroad", "RR").trim();
                 FontMetrics fm = g2d.getFontMetrics();
                 int textWidth = fm.stringWidth(abbreviation);
                 int textX = x + (SPACE_HEIGHT - textWidth) / 2;
-                
-                g2d.drawString(abbreviation, textX, trainY);
+                int textY = y + SPACE_WIDTH / 2;
+                g2d.drawString(abbreviation, textX, textY);
+
+                // Draw railroad price too
+                if (positionToPrice.containsKey(position)) {
+                    String price = "₩" + positionToPrice.get(position);
+                    int priceWidth = fm.stringWidth(price);
+                    int priceX = x + (SPACE_HEIGHT - priceWidth) / 2;
+                    int priceY = textY + 12;
+                    g2d.drawString(price, priceX, priceY);
+                }
             }
 
-            // We're now drawing utilities using emoji in our earlier code, 
-            // so leave this section empty to avoid drawing them twice
-
-            // Mark owned properties
+            // Ownership mark (small dot)
             for (PlayerData player : players) {
                 if (player.ownedProperties.contains(position)) {
                     g2d.setColor(player.color);
-                    if (bottom) {
-                        g2d.fillRect(x, y + SPACE_WIDTH - 5, SPACE_HEIGHT, 5);
-                    } else {
-                        g2d.fillRect(x, y, SPACE_HEIGHT, 5);
-                    }
+                    g2d.fillOval(x + 5, y + 5, 8, 8);
                     break;
                 }
             }
         }
     }
 
+
     /**
      * Draw vertical spaces (left and right columns).
-     * Team member(s) responsible: Matt
+     * Team member(s) responsible: Matt and Deborah
      */
     private void drawVerticalSpaces(Graphics2D g2d, boolean left) {
         int x = left ? 0 : BOARD_SIZE - SPACE_HEIGHT;
 
         for (int i = 1; i < 10; i++) {
             int y = BOARD_SIZE - SPACE_WIDTH - i * SPACE_WIDTH;
-            // Correct position mapping:
-            // Left column: Jail (10) is at bottom, then positions 11-19 from bottom to top
-            // Right column: Go To Jail (30) is at top, then positions 31-39 from top to bottom
             int position = left ? 10 + i : (40 - i);
 
-            // Set space color
-            if (positionToName.get(position).contains("Chance")) {
-                g2d.setColor(new Color(255, 222, 173)); // Light orange for Chance
-            } else if (positionToName.get(position).contains("Community Chest")) {
-                g2d.setColor(new Color(230, 230, 250)); // Lavender for Community Chest
-            } else if (positionToName.get(position).contains("Tax")) {
-                g2d.setColor(new Color(192, 192, 192)); // Silver for Tax spaces
+            // Always fill background white first
+            g2d.setColor(BOARD_BACKGROUND_COLOR);
+            g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+
+            String spaceName = positionToName.get(position);
+
+            // Special spaces: Chance, Chest, Tax
+            if (spaceName.contains("Chance")) {
+                g2d.setColor(new Color(255, 222, 173));
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+            } else if (spaceName.contains("Community Chest")) {
+                g2d.setColor(new Color(230, 230, 250));
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+            } else if (spaceName.contains("Tax")) {
+                g2d.setColor(new Color(192, 192, 192));
+                g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
             } else {
-                // Get property color or use default white
-                String propertyName = positionToName.get(position);
-                g2d.setColor(propertyColors.containsKey(propertyName) ?
-                        propertyColors.get(propertyName) : Color.WHITE);
+                // Regular property (not Railroad or Utility)
+                if (propertyColors.containsKey(spaceName) &&
+                        !isRailroad(spaceName) &&
+                        !spaceName.contains("Company") &&
+                        !spaceName.contains("Works")) {
+
+                    Color stripeColor = propertyColors.get(spaceName);
+                    g2d.setColor(stripeColor);
+
+                    int stripeWidth = SPACE_HEIGHT / 5;
+                    if (left) {
+                        g2d.fillRect(x + SPACE_HEIGHT - stripeWidth, y, stripeWidth, SPACE_WIDTH);
+                    } else {
+                        g2d.fillRect(x, y, stripeWidth, SPACE_WIDTH);
+                    }
+                }
             }
 
-            // Draw the space
-            g2d.fillRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
+            // Black border
             g2d.setColor(Color.BLACK);
             g2d.drawRect(x, y, SPACE_HEIGHT, SPACE_WIDTH);
-            
-            // Draw special space images for non-property spaces
-            String spaceName = positionToName.get(position);
+
+            // Draw special space images
             if (spaceName.contains("Chance") && spaceImages.containsKey("Chance")) {
-                // Draw chance card image
-                Image chanceImage = spaceImages.get("Chance");
-                int imgX = x + (SPACE_HEIGHT - chanceImage.getWidth(null)) / 2;
+                Image img = spaceImages.get("Chance");
+                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(chanceImage, imgX, imgY, null);
+                g2d.drawImage(img, imgX, imgY, null);
             } else if (spaceName.contains("Community Chest") && spaceImages.containsKey("Community Chest")) {
-                // Draw community chest image
-                Image communityChestImage = spaceImages.get("Community Chest");
-                int imgX = x + (SPACE_HEIGHT - communityChestImage.getWidth(null)) / 2;
+                Image img = spaceImages.get("Community Chest");
+                int imgX = x + (SPACE_HEIGHT - img.getWidth(null)) / 2;
                 int imgY = y + 5;
-                g2d.drawImage(communityChestImage, imgX, imgY, null);
+                g2d.drawImage(img, imgX, imgY, null);
             } else if (spaceName.contains("Electric Company")) {
-                // Draw lightbulb emoji
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
-                String lightbulbEmoji = "💡"; // Lightbulb emoji
+                String emoji = "💡";
                 FontMetrics fm = g2d.getFontMetrics();
-                int emojiWidth = fm.stringWidth(lightbulbEmoji);
+                int emojiWidth = fm.stringWidth(emoji);
                 int emojiX = x + (SPACE_HEIGHT - emojiWidth) / 2;
                 int emojiY = y + SPACE_WIDTH / 2 + 10;
-                g2d.drawString(lightbulbEmoji, emojiX, emojiY);
+                g2d.drawString(emoji, emojiX, emojiY);
             } else if (spaceName.contains("Income Tax")) {
-                // Draw "Pay $200 or 10%" label
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Arial", Font.BOLD, 9));
-                String taxLabel = "Pay $200";
-                FontMetrics labelFm = g2d.getFontMetrics();
-                int labelWidth = labelFm.stringWidth(taxLabel);
-                int labelX = x + (SPACE_HEIGHT - labelWidth) / 2;
-                int labelY = y + SPACE_WIDTH / 4;
-                g2d.drawString(taxLabel, labelX, labelY);
-                
-                // Draw "or 10%" on next line
-                String percentLabel = "or 10%";
-                int percentWidth = labelFm.stringWidth(percentLabel);
-                int percentX = x + (SPACE_HEIGHT - percentWidth) / 2;
-                int percentY = y + SPACE_WIDTH / 4 + 12;
-                g2d.drawString(percentLabel, percentX, percentY);
-                
-                // Draw money bag emoji
+                g2d.drawString("Pay ₩200", x + SPACE_HEIGHT / 4, y + SPACE_WIDTH / 3);
+                g2d.drawString("or 10%", x + SPACE_HEIGHT / 4, y + SPACE_WIDTH / 2);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
-                String moneyEmoji = "💰"; // Money bag emoji
-                FontMetrics fm = g2d.getFontMetrics();
-                int emojiWidth = fm.stringWidth(moneyEmoji);
-                int emojiX = x + (SPACE_HEIGHT - emojiWidth) / 2;
-                int emojiY = y + SPACE_WIDTH / 2 + 10;
-                g2d.drawString(moneyEmoji, emojiX, emojiY);
+                g2d.drawString("💰", x + SPACE_HEIGHT / 3, y + SPACE_WIDTH / 2 + 20);
             } else if (spaceName.contains("Luxury Tax")) {
-                // Draw "Pay $75" label
                 g2d.setColor(Color.BLACK);
-                g2d.setFont(new Font("Arial", Font.BOLD, 10));
-                String taxLabel = "Pay $75";
-                FontMetrics labelFm = g2d.getFontMetrics();
-                int labelWidth = labelFm.stringWidth(taxLabel);
-                int labelX = x + (SPACE_HEIGHT - labelWidth) / 2;
-                int labelY = y + SPACE_WIDTH / 3;
-                g2d.drawString(taxLabel, labelX, labelY);
-                
-                // Draw diamond emoji
+                g2d.setFont(new Font("Arial", Font.BOLD, 9));
+                g2d.drawString("Pay ₩75", x + SPACE_HEIGHT / 4, y + SPACE_WIDTH / 3);
                 g2d.setFont(new Font("Dialog", Font.PLAIN, 24));
-                String diamondEmoji = "💎"; // Diamond emoji
-                FontMetrics fm = g2d.getFontMetrics();
-                int emojiWidth = fm.stringWidth(diamondEmoji);
-                int emojiX = x + (SPACE_HEIGHT - emojiWidth) / 2;
-                int emojiY = y + SPACE_WIDTH / 2 + 10;
-                g2d.drawString(diamondEmoji, emojiX, emojiY);
+                g2d.drawString("💎", x + SPACE_HEIGHT / 3, y + SPACE_WIDTH / 2 + 20);
             }
 
-            // Add color bar for properties (not utilities or railroads)
-            if (propertyColors.containsKey(positionToName.get(position)) &&
-                    !positionToName.get(position).contains("Railroad") &&
-                    !positionToName.get(position).contains("Company") &&
-                    !positionToName.get(position).contains("Works")) {
-                int barWidth = SPACE_HEIGHT / 5;
-                if (left) {
-                    g2d.setColor(g2d.getColor().darker());
-                    g2d.fillRect(x + SPACE_HEIGHT - barWidth, y, barWidth, SPACE_WIDTH);
-                } else {
-                    g2d.setColor(g2d.getColor().darker());
-                    g2d.fillRect(x, y, barWidth, SPACE_WIDTH);
-                }
-                
-                // Add property name
+            // Add name and price for property spaces (skip Railroads and Utilities)
+            if (propertyColors.containsKey(spaceName) &&
+                    !isRailroad(spaceName) &&
+                    !spaceName.contains("Company") &&
+                    !spaceName.contains("Works")) {
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(new Font("Arial", Font.PLAIN, 8));
                 FontMetrics fm = g2d.getFontMetrics();
-                String propertyName = positionToName.get(position);
-                
-                // Split name to fit in the space
-                String[] words = propertyName.split(" ");
-                int xOffset = left ? x + 5 : x + barWidth + 5;
-                
+
+                String[] words = spaceName.split(" ");
+                int xOffset = left ? x + 5 : x + SPACE_HEIGHT / 5 + 5;
+
                 for (int w = 0; w < words.length; w++) {
                     int textWidth = fm.stringWidth(words[w]);
-                    // Make text fit in the space, possibly at an angle if needed
                     int textX = Math.min(xOffset, x + SPACE_HEIGHT - textWidth - 2);
                     int textY = y + 15 + (w * 10);
-                    
-                    // Make sure text is within space boundary
                     if (textY < y + SPACE_WIDTH - 5) {
                         g2d.drawString(words[w], textX, textY);
                     }
                 }
-                
-                // Add price if available
+
                 if (positionToPrice.containsKey(position)) {
                     g2d.setFont(new Font("Arial", Font.BOLD, 8));
                     String price = "$" + positionToPrice.get(position);
@@ -1335,52 +1250,54 @@ public class Gui {
                 }
             }
 
-            // Draw railroads
-            if (positionToName.get(position).contains("Railroad")) {
+            // Railroads abbreviation (draw separately)
+            if (isRailroad(spaceName)) {
                 g2d.setColor(Color.BLACK);
-                
-                // Get the railroad name and abbreviate it
-                String railroadName = positionToName.get(position);
+                g2d.setFont(new Font("Arial", Font.BOLD, 7));
+
                 String abbreviation;
-                
-                if (railroadName.contains("Reading")) {
+                if (spaceName.contains("Reading")) {
                     abbreviation = "Reading RR";
-                } else if (railroadName.contains("Pennsylvania")) {
+                } else if (spaceName.contains("Pennsylvania")) {
                     abbreviation = "Penn RR";
-                } else if (railroadName.contains("B. & O.")) {
+                } else if (spaceName.contains("B. & O.")) {
                     abbreviation = "B&O RR";
-                } else if (railroadName.contains("Short Line")) {
+                } else if (spaceName.contains("Short Line")) {
                     abbreviation = "Short RR";
                 } else {
-                    abbreviation = "RR"; // Fallback
+                    abbreviation = "RR"; // fallback
                 }
-                
-                int trainSize = SPACE_WIDTH / 2;
-                int trainX = left ? x + 5 : x + 5;
-                int trainY = y + SPACE_WIDTH/2 + 5;
-                
-                // Use smaller font to fit the name
-                g2d.setFont(new Font("Arial", Font.BOLD, 7));
-                g2d.drawString(abbreviation, trainX, trainY);
+
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(abbreviation);
+                int textX = x + (SPACE_HEIGHT - textWidth) / 2;
+                int textY = y + SPACE_WIDTH / 2;
+                g2d.drawString(abbreviation, textX, textY);
+
+                if (positionToPrice.containsKey(position)) {
+                    String price = "₩" + positionToPrice.get(position);
+                    int priceWidth = fm.stringWidth(price);
+                    int priceX = x + (SPACE_HEIGHT - priceWidth) / 2;
+                    int priceY = textY + 12;
+                    g2d.drawString(price, priceX, priceY);
+                }
             }
 
-            // We're now drawing utilities using emoji in our earlier code, 
-            // so leave this section empty to avoid drawing them twice
-
-            // Mark owned properties
+            // Mark ownership (small colored dot)
             for (PlayerData player : players) {
                 if (player.ownedProperties.contains(position)) {
                     g2d.setColor(player.color);
                     if (left) {
-                        g2d.fillRect(x + SPACE_HEIGHT - 5, y, 5, SPACE_WIDTH);
+                        g2d.fillOval(x + SPACE_HEIGHT - 10, y + 5, 8, 8);
                     } else {
-                        g2d.fillRect(x, y, 5, SPACE_WIDTH);
+                        g2d.fillOval(x + 5, y + 5, 8, 8);
                     }
                     break;
                 }
             }
         }
     }
+
 
     /**
      * Draw player tokens on the board.
@@ -1445,7 +1362,7 @@ public class Gui {
             }
         };
 
-        dicePanel.setPreferredSize(new Dimension(100, 100));
+        dicePanel.setPreferredSize(new Dimension(211, BOARD_SIZE));
         dicePanel.setBorder(BorderFactory.createTitledBorder("Dice"));
 
         gamePanel.add(dicePanel, BorderLayout.WEST);
@@ -1453,16 +1370,16 @@ public class Gui {
 
     /**
      * Draw the dice with current values.
-     * Team member(s) responsible: Matt
+     * Team member(s) responsible: Matt and Deborah
      */
     private void drawDice(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int diceSize = 30;
+        int diceSize = 90;
         int x1 = 15;
         int y1 = 30;
-        int x2 = 55;
+        int x2 = 110;
         int y2 = 30;
 
         // Draw first die
@@ -1484,8 +1401,19 @@ public class Gui {
         drawDiceDots(g2d, x2, y2, diceSize, dice2Value);
 
         // Draw total
-        g2d.setFont(new Font("Arial", Font.BOLD, 14));
-        g2d.drawString("Total: " + (dice1Value + dice2Value), 20, 80);
+        g2d.setColor(Color.BLACK);
+        g2d.setFont(new Font("Arial", Font.BOLD, 16));
+
+        String totalText = "Total: " + (dice1Value + dice2Value);
+
+        FontMetrics fm = g2d.getFontMetrics();
+        int textWidth = fm.stringWidth(totalText);
+
+        int totalDiceWidth = (x2 + diceSize) - x1;
+        int centerX = x1 + totalDiceWidth / 2;
+        int textX = centerX - (textWidth / 2);
+        int textY = y1 + diceSize + 20;
+        g2d.drawString(totalText, textX, textY);
     }
 
     /**
