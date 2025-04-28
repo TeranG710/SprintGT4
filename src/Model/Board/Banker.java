@@ -175,12 +175,35 @@ public class Banker {
      * Team member(s) responsible: Jamell
      */
     public void addTitleDeed(Player player, BoardSpace property) {
+        System.out.println("BANKER: Adding " + property.getName() +
+                " to " + player.getName() + "'s title deeds");
+
+        // Ensure player has an entry in titleDeeds map
         if (!titleDeeds.containsKey(player)) {
             titleDeeds.put(player, new ArrayList<>());
+            System.out.println("BANKER: Created new title deed list for " + player.getName());
         }
-        titleDeeds.get(player).add(property);
-        property.setOwner(player);
-        availableProperties.remove(property);
+
+        // Add the property to player's title deeds
+        ArrayList<BoardSpace> properties = titleDeeds.get(player);
+        if (!properties.contains(property)) {
+            properties.add(property);
+            System.out.println("BANKER: Added " + property.getName() + " to deed list");
+        } else {
+            System.out.println("BANKER: Property was already in deed list");
+        }
+
+        // Double check property owner is set
+        if (property.getOwner() != player) {
+            System.out.println("BANKER WARNING: Property owner was not set correctly. Fixing.");
+            property.setOwner(player);
+        }
+
+        // Double check property is removed from available properties
+        if (availableProperties.contains(property)) {
+            System.out.println("BANKER WARNING: Property still in available list. Removing.");
+            availableProperties.remove(property);
+        }
     }
 
     /**
@@ -263,15 +286,55 @@ public class Banker {
      * @throws InsufficientFundsException if player has insufficient funds
      * Team member(s) responsible: Matt
      */
-    public void sellProperty(BoardSpace property, Player player) throws PlayerNotFoundException {
-        if (!availableProperties.contains(property)) {
-            throw new InvalidTransactionException();
+    public void sellProperty(BoardSpace property, Player player) throws PlayerNotFoundException, InsufficientFundsException {
+        System.out.println("BANKER: Attempting to sell " + property.getName() +
+                " to " + player.getName());
+
+        // Validate player exists
+        if (!playerBalances.containsKey(player)) {
+            System.out.println("BANKER ERROR: Player not found");
+            throw new PlayerNotFoundException();
         }
+
+        // Important: Check if property is actually available
+        if (!availableProperties.contains(property)) {
+            // Try to make it available if it has no owner
+            if (property.getOwner() == null) {
+                System.out.println("BANKER: Property has no owner but wasn't in available list. Adding it.");
+                availableProperties.add(property);
+            } else {
+                System.out.println("BANKER ERROR: Property is already owned by " +
+                        property.getOwner().getName());
+                throw new InvalidTransactionException();
+            }
+        }
+
         int price = property.getPurchasePrice();
+        System.out.println("BANKER: Property price is $" + price);
+
+        // Check if player has enough money
+        int playerBalance = playerBalances.get(player);
+        if (playerBalance < price) {
+            System.out.println("BANKER ERROR: Insufficient funds. Player has $" +
+                    playerBalance + " but needs $" + price);
+            throw new InsufficientFundsException();
+        }
+
+        // Process the transaction
         withdraw(player, price);
-        availableProperties.remove(property);
+
+        // Explicitly remove from available properties
+        boolean removed = availableProperties.remove(property);
+        System.out.println("BANKER: Property removed from available list: " + removed);
+
+        // Set the owner directly
         property.setOwner(player);
+
+        // Add to player's deeds
         addTitleDeed(player, property);
+
+        System.out.println("BANKER: Transaction complete. " + player.getName() +
+                " now owns " + property.getName());
     }
 
     /**

@@ -2523,46 +2523,32 @@ public class Gui {
      * @return true if the player wants to buy, false to auction
      */
     public boolean showPropertyPurchaseDialog(Property property, int playerMoney) {
-        // Debug message to ensure we're reaching this method
-        System.out.println("*** SHOWING PROPERTY PURCHASE DIALOG FOR: " + property.getName() + " ***");
-        
-        try {
-            // Log important property information
-            System.out.println("Property: " + property.getName() + 
-                              " | Price: $" + property.getPurchasePrice() + 
-                              " | Position: " + property.getPosition() + 
-                              " | Player Money: $" + playerMoney);
-            
-            // Create and show the dialog on the event dispatch thread
+        System.out.println("SHOWING PROPERTY PURCHASE DIALOG FOR: " + property.getName());
+
+        // Ensure we're on the Event Dispatch Thread
+        if (!SwingUtilities.isEventDispatchThread()) {
             final boolean[] result = new boolean[1];
-            
-            // Force dialog to run on the event dispatch thread for thread safety
-            javax.swing.SwingUtilities.invokeAndWait(() -> {
-                try {
-                    PropertyPurchaseDialog dialog = new PropertyPurchaseDialog(mainFrame, property, playerMoney);
-                    result[0] = dialog.showDialog();
-                } catch (Exception e) {
-                    System.err.println("Error showing property dialog: " + e.getMessage());
-                    e.printStackTrace();
-                    result[0] = false; // Default to auction if there's an error
-                }
-            });
-            
-            // If the property was purchased, update the management tab
-            if (result[0]) {
-                // Update property management panel if a purchase happened
-                SwingUtilities.invokeLater(() -> {
-                    refreshPropertyManagementPanel(null);
-                    updateGameStatistics(); // Update statistics after purchase
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    result[0] = showPropertyPurchaseDialog(property, playerMoney);
                 });
+                return result[0];
+            } catch (Exception e) {
+                System.err.println("Error in property dialog: " + e.getMessage());
+                e.printStackTrace();
+                return false;
             }
-            
-            System.out.println("Property purchase dialog result: " + (result[0] ? "BUY" : "AUCTION"));
-            return result[0];
+        }
+
+        // Now we're on EDT, proceed with dialog creation
+        try {
+            PropertyPurchaseDialog dialog = new PropertyPurchaseDialog(mainFrame, property, playerMoney);
+            boolean wantsToBuy = dialog.showDialog();
+            return wantsToBuy;
         } catch (Exception e) {
-            System.err.println("ERROR in showPropertyPurchaseDialog: " + e.getMessage());
+            System.err.println("Exception in purchase dialog: " + e.getMessage());
             e.printStackTrace();
-            return false; // Default to auction if there's an error
+            return false;
         }
     }
     

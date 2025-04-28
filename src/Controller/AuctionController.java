@@ -51,6 +51,7 @@ public class AuctionController {
      * @param parentFrame The parent frame for the auction dialog
      * @return The player who won the auction, or null if nobody bid
      */
+    // In the startAuction method:
     public Player startAuction(BoardSpace property, ArrayList<Player> players, JFrame parentFrame) {
         if (property == null || players == null || players.isEmpty()) {
             return null;
@@ -64,14 +65,33 @@ public class AuctionController {
         for (Player player : players) {
             currentBids.put(player, 0);
         }
-        createAuctionDialog(parentFrame);
-        auctionDialog.setVisible(true);
-        while (auctionInProgress) {
+
+        // Create and show the auction dialog in a non-blocking way
+        SwingUtilities.invokeLater(() -> {
+            createAuctionDialog(parentFrame);
+            auctionDialog.setVisible(true);
+        });
+
+        // Wait for auction to complete with a timeout
+        long startTime = System.currentTimeMillis();
+        long timeout = 60000; // 60 seconds timeout
+        while (auctionInProgress && (System.currentTimeMillis() - startTime) < timeout) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+
+        if (auctionInProgress) {
+            // If we timed out, force end the auction
+            System.out.println("Auction timed out - forcing completion");
+            auctionInProgress = false;
+            SwingUtilities.invokeLater(() -> {
+                if (auctionDialog != null && auctionDialog.isVisible()) {
+                    auctionDialog.dispose();
+                }
+            });
         }
 
         return highestBidder;

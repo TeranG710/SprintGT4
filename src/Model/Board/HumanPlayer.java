@@ -54,14 +54,36 @@ public class HumanPlayer extends Player {
      * This method is abstract and should be implemented by subclasses.
      * Team member(s) responsible: Jamell
      */
+    // In the move method of the Player classes (both HumanPlayer and ComputerPlayer):
     @Override
     public void move(Player player, int spaces) throws PlayerNotFoundException {
         if (player == null) {
             throw new PlayerNotFoundException();
         }
-        int newPosition = (getPosition() + spaces) % 40;
+
+        // Calculate new position with careful bounds checking
+        int currentPosition = getPosition();
+        int newPosition = (currentPosition + spaces) % 40;
+
+        // Ensure position is valid
+        if (newPosition < 0) {
+            newPosition += 40;
+        }
+
+        // Log the move for debugging
+        System.out.println(getName() + " moved from position " + currentPosition +
+                " to position " + newPosition + " (+" + spaces + " spaces)");
+
+        // Set the new position
         setPosition(newPosition);
-        System.out.println(getName() + " moved to position " + newPosition);
+
+        try {
+            // Handle landing on the space
+            getBoard().getBoardElements()[newPosition].onLanding(player);
+        } catch (Exception e) {
+            System.err.println("Error in space landing handler: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 

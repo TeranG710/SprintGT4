@@ -772,40 +772,89 @@ public class BoardController {
      * @param property The property that the player landed on
      */
     private void handlePropertySpace(Player player, Property property) {
-        System.out.println("CRITICAL PROPERTY HANDLING: Player " + player.getName() + 
-                         " landed on property " + property.getName());
-        
-        // Handle computer player
-        if (player instanceof ComputerPlayer) {
-            handleComputerPlayerOnProperty((ComputerPlayer) player, property);
+        System.out.println("CRITICAL PROPERTY HANDLING: Player " + player.getName() +
+                " landed on property " + property.getName());
+
+        // Check if property is null (defensive coding)
+        if (property == null) {
+            System.err.println("ERROR: Null property in handlePropertySpace");
             return;
         }
-        
-        // HUMAN PLAYER PROPERTY HANDLING - CRITICAL CODE
-        HumanPlayer humanPlayer = (HumanPlayer) player;
-        
+
         // First check property ownership
         Player owner = property.getOwner();
-        
+
         if (owner == null) {
             // UNOWNED PROPERTY - OFFER TO BUY
-            System.out.println("PURCHASE OPPORTUNITY: Property " + property.getName() + 
-                             " is unowned. Offering to " + humanPlayer.getName());
-            
-            // Direct purchase dialog - minimal code path
-            offerPropertyToHuman(humanPlayer, property);
+            System.out.println("PURCHASE OPPORTUNITY: Property " + property.getName() +
+                    " is unowned. Offering to " + player.getName());
+
+            if (player instanceof ComputerPlayer) {
+                // Computer player logic
+                handleComputerPlayerOnProperty((ComputerPlayer) player, property);
+            } else {
+                // HUMAN PLAYER - Show purchase dialog
+                try {
+                    int balance = banker.getBalance(player);
+                    int price = property.getPurchasePrice();
+
+                    // Check if player can afford it
+                    if (balance < price) {
+                        System.out.println("CANNOT AFFORD: Player only has $" + balance +
+                                " but property costs $" + price);
+                        gui.displayMessage(player.getName() + " can't afford to buy " +
+                                property.getName() + ". Starting auction...");
+                        auctionProperty(property);
+                        return;
+                    }
+
+                    // Direct purchase dialog with simple confirmation
+                    int choice = JOptionPane.showConfirmDialog(gui.getMainFrame(),
+                            "Do you want to buy " + property.getName() + " for $" + price + "?",
+                            "Buy Property", JOptionPane.YES_NO_OPTION);
+
+                    if (choice == JOptionPane.YES_OPTION) {
+                        // BUY PROPERTY using direct banker method
+                        try {
+                            banker.sellProperty(property, player);
+                            System.out.println("PURCHASE SUCCESSFUL: " + player.getName() +
+                                    " bought " + property.getName() + " for $" + price);
+
+                            // Update UI
+                            gui.updatePlayerInfo(players);
+                            gui.updatePropertyOwnership(property, player);
+                            gui.displayMessage(player.getName() + " purchased " +
+                                    property.getName() + " for $" + price);
+                        } catch (Exception e) {
+                            System.err.println("ERROR during purchase: " + e.getMessage());
+                            JOptionPane.showMessageDialog(gui.getMainFrame(),
+                                    "Error during purchase: " + e.getMessage(),
+                                    "Purchase Failed", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        // AUCTION
+                        System.out.println("PURCHASE DECLINED: Starting auction for " +
+                                property.getName());
+                        gui.displayMessage(player.getName() + " declined to buy " +
+                                property.getName() + ". Starting auction...");
+                        auctionProperty(property);
+                    }
+                } catch (PlayerNotFoundException e) {
+                    System.err.println("Error finding player: " + e.getMessage());
+                }
+            }
         }
         else if (owner == player) {
             // PLAYER ALREADY OWNS THIS PROPERTY
-            if (gui != null) {
-                System.out.println("OWNER LANDED: " + player.getName() + " already owns " + property.getName());
-                gui.displayMessage(player.getName() + " landed on their own property: " + property.getName());
-            }
+            System.out.println("OWNER LANDED: " + player.getName() + " already owns " +
+                    property.getName());
+            gui.displayMessage(player.getName() + " landed on their own property: " +
+                    property.getName());
         }
         else {
             // PROPERTY OWNED BY ANOTHER PLAYER - PAY RENT
-            System.out.println("RENT PAYMENT: " + player.getName() + " must pay rent to " + 
-                             owner.getName() + " for " + property.getName());
+            System.out.println("RENT PAYMENT: " + player.getName() + " must pay rent to " +
+                    owner.getName() + " for " + property.getName());
             handleRentPayment(player, property);
         }
     }
@@ -1601,49 +1650,84 @@ public class BoardController {
      */
     public void auctionProperty(Property property) {
         if (gui != null) {
-            // Show auction dialog
-            JOptionPane.showMessageDialog(gui.getMainFrame(),
-                    "Starting auction for " + property.getName(),
-                    "Property Auction", JOptionPane.INFORMATION_MESSAGE);
-                    
-            // Use AuctionController to handle the auction UI
-            if (auctionController != null) {
-                // Create a defensive copy of players list for the auction
-                Player winner = auctionController.startAuction(property, 
-                                                              new ArrayList<>(players), 
-                                                              gui.getMainFrame());
-                
-                if (winner != null) {
-                    // Show auction result
-                    JOptionPane.showMessageDialog(gui.getMainFrame(),
-                            winner.getName() + " won the auction for " + property.getName(),
-                            "Auction Complete", JOptionPane.INFORMATION_MESSAGE);
-                    
-                    // Update GUI with the auction result
+            gui.displayMessage("Starting auction for " + property.getName());
+
+            // Use a simpler auction mechanism for the MVP
+            Player winner = null;
+            int highestBid = 0;
+
+            // Simple auction: Let each player make one bid based on their computer logic
+            // or for humans, a simple dialog
+            for (Player player : players) {
+                try {
+                    int balance = banker.getBalance(player);
+                    int maxBid = Math.min(balance, property.getPurchasePrice());
+
+                    if (maxBid <= highestBid) {
+                        continue; // Can't afford to outbid
+                    }
+
+                    int bid = 0;
+                    if (player instanceof ComputerPlayer) {
+                        // Computer player bids automatically
+                        CpuController cpu = cpuControllers.get((ComputerPlayer)player);
+                        bid = cpu.decideBidAmount(property, highestBid);
+                    } else {
+                        // Human player bids via dialog
+                        String bidStr = JOptionPane.showInputDialog(gui.getMainFrame(),
+                                player.getName() + ", enter your bid for " + property.getName() +
+                                        " (minimum: $" + (highestBid + 1) + ", maximum: $" + maxBid + ")",
+                                "Auction", JOptionPane.QUESTION_MESSAGE);
+
+                        if (bidStr != null && !bidStr.isEmpty()) {
+                            try {
+                                bid = Integer.parseInt(bidStr);
+                                // Ensure bid is valid
+                                if (bid <= highestBid || bid > maxBid) {
+                                    JOptionPane.showMessageDialog(gui.getMainFrame(),
+                                            "Invalid bid amount. Must be between $" + (highestBid + 1) +
+                                                    " and $" + maxBid,
+                                            "Invalid Bid", JOptionPane.WARNING_MESSAGE);
+                                    bid = 0;
+                                }
+                            } catch (NumberFormatException e) {
+                                JOptionPane.showMessageDialog(gui.getMainFrame(),
+                                        "Please enter a valid number",
+                                        "Invalid Bid", JOptionPane.WARNING_MESSAGE);
+                                bid = 0;
+                            }
+                        }
+                    }
+
+                    // Update highest bid if this player's bid is higher
+                    if (bid > highestBid) {
+                        highestBid = bid;
+                        winner = player;
+                        gui.displayMessage(player.getName() + " bids $" + bid);
+                    }
+
+                } catch (PlayerNotFoundException e) {
+                    System.err.println("Error getting player balance: " + e.getMessage());
+                }
+            }
+
+            // Complete the auction
+            if (winner != null && highestBid > 0) {
+                try {
+                    banker.withdraw(winner, highestBid);
+                    banker.addTitleDeed(winner, property);
+                    property.setOwner(winner);
+
+                    gui.displayMessage(winner.getName() + " won the auction for " +
+                            property.getName() + " with a bid of $" + highestBid);
                     gui.updatePlayerInfo(players);
                     gui.updatePropertyOwnership(property, winner);
-                } else {
-                    JOptionPane.showMessageDialog(gui.getMainFrame(),
-                            "No one bid on " + property.getName() + ". It remains with the bank.",
-                            "Auction Complete", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    System.err.println("Error completing auction: " + e.getMessage());
                 }
             } else {
-                // Fallback to simpler method if auction controller not available
-                Player winner = banker.startAuction(property, players);
-                
-                if (winner != null) {
-                    JOptionPane.showMessageDialog(gui.getMainFrame(),
-                            winner.getName() + " won the auction for " + property.getName(),
-                            "Auction Complete", JOptionPane.INFORMATION_MESSAGE);
-                    
-                    // Update GUI with the auction result
-                    gui.updatePlayerInfo(players);
-                    gui.updatePropertyOwnership(property, winner);
-                } else {
-                    JOptionPane.showMessageDialog(gui.getMainFrame(),
-                            "No one bid on " + property.getName() + ". It remains with the bank.",
-                            "Auction Complete", JOptionPane.INFORMATION_MESSAGE);
-                }
+                // No bids, property remains with bank
+                gui.displayMessage("No one bid on " + property.getName() + ". It remains with the bank.");
             }
         }
     }
