@@ -233,64 +233,70 @@ public class Gui {
      * 
      * @param players The list of players in the game
      */
+    /**
+     * Initialize a new game with the given players.
+     * This fixed version ensures all players start at the correct position.
+     *
+     * @param players The list of players in the game
+     */
     public void initializeGame(ArrayList<Player> players) {
         // Clear existing data
         this.players.clear();
-        
+        mortgagedProperties.clear();
+
+        // Reset game statistics
+        totalTurns = 0;
+        totalDiceRolls = 0;
+        totalDoubles = 0;
+        totalGoPasses = 0;
+        totalJailVisits = 0;
+        gameStartTime = System.currentTimeMillis();
+
         // Convert Player model objects to PlayerData view objects
-        Color[] playerColors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, 
-                         Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.PINK};
-        
+        Color[] playerColors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW,
+                Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.PINK};
+
         System.out.println("GUI Initialization: Setting up new game with " + players.size() + " players");
-        
+
         for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
-            
-            // Force all players to position 0 (GO)
-            int currentPos = player.getPosition();
-            if (currentPos != 0) {
-                System.out.println("GUI: Player " + player.getName() + " was at position " + currentPos +
-                                 ", correcting to position 0 (GO)");
-            }
-            
-            // Always set position to 0 regardless of current value
+
+            // CRITICAL: Force all players to position 0 (GO)
             player.setPosition(0);
             System.out.println("GUI: Player " + player.getName() + " position set to 0 (GO)");
-            
+
             Color color = playerColors[i % playerColors.length];
-            // Create PlayerData with explicit position 0
             PlayerData playerData = new PlayerData(player.getName(), color, 0, 1500);
-            
-            // Double check position is correct
-            if (playerData.position != 0) {
-                System.out.println("GUI ERROR: PlayerData position was not 0, fixing...");
-                playerData.position = 0;
-            }
-            
+
             // Set the token name from the player model
             if (player.getTokenName() != null) {
                 playerData.tokenName = player.getTokenName();
             }
-            
+
             this.players.add(playerData);
         }
-        
+
         // Reset current player index
         currentPlayerIndex = 0;
-        
+
         // Reset dice values
         dice1Value = 1;
         dice2Value = 1;
         diceRolled = false;
-        
+
         // Update all panels
         boardPanel.repaint();
         updatePlayerInfoPanel();
         updatePropertyPanel();
         dicePanel.repaint();
-        
+
         // Display welcome message
         displayMessage("Game started! It's " + this.players.get(0).name + "'s turn.");
+
+        // Reset any game state variables in controller if available
+        if (controller != null) {
+            controller.resetGameState();
+        }
     }
     
     /**
@@ -2523,9 +2529,11 @@ public class Gui {
      * @return true if the player wants to buy, false to auction
      */
     public boolean showPropertyPurchaseDialog(Property property, int playerMoney) {
+        // Important debug output
         System.out.println("SHOWING PROPERTY PURCHASE DIALOG FOR: " + property.getName());
+        System.out.println("PROPERTY PRICE: $" + property.getPurchasePrice() + " - PLAYER MONEY: $" + playerMoney);
 
-        // Ensure we're on the Event Dispatch Thread
+        // Ensure we're on the Event Dispatch Thread to avoid thread safety issues
         if (!SwingUtilities.isEventDispatchThread()) {
             final boolean[] result = new boolean[1];
             try {
@@ -2536,15 +2544,38 @@ public class Gui {
             } catch (Exception e) {
                 System.err.println("Error in property dialog: " + e.getMessage());
                 e.printStackTrace();
+                // Default to not buying if there's an error
                 return false;
             }
         }
 
-        // Now we're on EDT, proceed with dialog creation
+        // Now we're guaranteed to be on EDT, create the dialog
         try {
-            PropertyPurchaseDialog dialog = new PropertyPurchaseDialog(mainFrame, property, playerMoney);
-            boolean wantsToBuy = dialog.showDialog();
-            return wantsToBuy;
+            // Simple JOptionPane approach for reliability
+            String message = "Do you want to buy " + property.getName() +
+                    " for $" + property.getPurchasePrice() + "?\n\n" +
+                    "Your balance: $" + playerMoney;
+
+            // Can't afford check
+            if (playerMoney < property.getPurchasePrice()) {
+                JOptionPane.showMessageDialog(mainFrame,
+                        "You don't have enough money to buy " + property.getName() + ".\n" +
+                                "It costs $" + property.getPurchasePrice() + " but you only have $" + playerMoney,
+                        "Insufficient Funds", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+            int choice = JOptionPane.showConfirmDialog(
+                    mainFrame,
+                    message,
+                    "Buy Property - " + property.getName(),
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            boolean result = (choice == JOptionPane.YES_OPTION);
+            System.out.println("PROPERTY PURCHASE DIALOG RESULT: " + (result ? "BUY" : "AUCTION"));
+            return result;
         } catch (Exception e) {
             System.err.println("Exception in purchase dialog: " + e.getMessage());
             e.printStackTrace();
@@ -3107,62 +3138,84 @@ public class Gui {
      * Helper method to get coordinates for a player token based on their position.
      * Team member(s) responsible: Matt
      */
+    /**
+     * Improved method to get coordinates for a player token based on their position.
+     * This completely rewrites the positioning logic to be more reliable.
+     */
     private int[] getCoordinatesForPosition(int position, int playerOffset) {
+        // Initialize coordinates array
         int[] coordinates = new int[2];
 
-        // CRITICAL FIX: Extensive logging for coordinate calculation
-        System.out.println("===> CALCULATING COORDINATES FOR POSITION: " + position);
-
-        // Handle out-of-bounds positions
+        // Clamp position to valid range 0-39
         if (position < 0 || position > 39) {
-            System.out.println("SEVERE WARNING: Invalid position " + position + ", clamping to valid range!");
+            System.out.println("WARNING: Invalid position " + position + ", clamping to valid range");
             position = Math.max(0, Math.min(position, 39));
         }
 
-        // Calculate the base coordinates for each position - completely rewritten for clarity and correctness
-        if (position >= 0 && position < 10) {
-            // Bottom row (right to left)
-            if (position == 0) {
-                // GO position (bottom right corner) - special case
-                coordinates[0] = BOARD_SIZE - SPACE_HEIGHT/2 - 10;
-                coordinates[1] = BOARD_SIZE - SPACE_WIDTH/2 - 10;
-                System.out.println("POSITION 0 (GO): Using special corner coordinates");
-            } else {
-                // Positions 1-9: Other bottom row positions from right to left
-                int offsetFromRight = position;
-                coordinates[0] = BOARD_SIZE - SPACE_HEIGHT - offsetFromRight * SPACE_HEIGHT + SPACE_HEIGHT/2 - 10;
-                coordinates[1] = BOARD_SIZE - SPACE_WIDTH/2 - 10;
-                System.out.println("BOTTOM ROW POSITION " + position + ": " + offsetFromRight + " spaces from right");
-            }
-        } else if (position >= 10 && position < 20) {
-            // Left column (bottom to top)
-            // Left column (bottom to top) - positions 10-19
-            int offsetFromBottom = position - 10;
-            coordinates[0] = SPACE_HEIGHT/2 - 10;
-            coordinates[1] = BOARD_SIZE - SPACE_WIDTH - offsetFromBottom * SPACE_WIDTH - SPACE_WIDTH/2 - 10;
-            System.out.println("LEFT COLUMN POSITION " + position + ": " + offsetFromBottom + " spaces from bottom");
-        } else if (position >= 20 && position < 30) {
-            // Top row (left to right) - positions 20-29
-            int offsetFromLeft = position - 20;
-            coordinates[0] = SPACE_HEIGHT + offsetFromLeft * SPACE_HEIGHT + SPACE_HEIGHT/2 - 10;
-            coordinates[1] = SPACE_WIDTH/2 - 10;
-            System.out.println("TOP ROW POSITION " + position + ": " + offsetFromLeft + " spaces from left");
-        } else {
-            // Right column (top to bottom) - positions 30-39
-            int offsetFromTop = position - 30;
-            coordinates[0] = BOARD_SIZE - SPACE_HEIGHT/2 - 10;
-            coordinates[1] = SPACE_WIDTH + offsetFromTop * SPACE_WIDTH + SPACE_WIDTH/2 - 10;
-            System.out.println("RIGHT COLUMN POSITION " + position + ": " + offsetFromTop + " spaces from top");
+        // Calculate the base coordinates for each position
+        if (position == 0) {
+            // GO position (bottom right corner)
+            coordinates[0] = BOARD_SIZE - SPACE_HEIGHT - 15;
+            coordinates[1] = BOARD_SIZE - SPACE_WIDTH - 15;
         }
-        
-        // Log the calculated coordinates with clear markers
-        System.out.println("===> POSITION " + position + " MAPPED TO COORDINATES: (" + 
-                            coordinates[0] + ", " + coordinates[1] + ")" + 
-                            " with player offset " + playerOffset);
+        else if (position > 0 && position < 10) {
+            // Bottom row (right to left, positions 1-9)
+            coordinates[0] = BOARD_SIZE - SPACE_HEIGHT - (position * SPACE_HEIGHT) - 15;
+            coordinates[1] = BOARD_SIZE - SPACE_WIDTH - 15;
+        }
+        else if (position == 10) {
+            // JAIL position (bottom left corner)
+            coordinates[0] = 5;
+            coordinates[1] = BOARD_SIZE - SPACE_WIDTH - 15;
+        }
+        else if (position > 10 && position < 20) {
+            // Left column (bottom to top, positions 11-19)
+            coordinates[0] = 5;
+            coordinates[1] = BOARD_SIZE - SPACE_WIDTH - ((position - 10) * SPACE_WIDTH) - 15;
+        }
+        else if (position == 20) {
+            // FREE PARKING position (top left corner)
+            coordinates[0] = 5;
+            coordinates[1] = 5;
+        }
+        else if (position > 20 && position < 30) {
+            // Top row (left to right, positions 21-29)
+            coordinates[0] = 5 + ((position - 20) * SPACE_HEIGHT);
+            coordinates[1] = 5;
+        }
+        else if (position == 30) {
+            // GO TO JAIL position (top right corner)
+            coordinates[0] = BOARD_SIZE - SPACE_HEIGHT - 15;
+            coordinates[1] = 5;
+        }
+        else if (position > 30 && position < 40) {
+            // Right column (top to bottom, positions 31-39)
+            coordinates[0] = BOARD_SIZE - SPACE_HEIGHT - 15;
+            coordinates[1] = 5 + ((position - 30) * SPACE_WIDTH);
+        }
 
-        // Add small offset based on player number to prevent overlap
-        coordinates[0] += (playerOffset % 2) * 15;
-        coordinates[1] += (playerOffset / 2) * 15;
+        // Add player offsets to prevent tokens from overlapping
+        // Each player gets a slightly different position
+        switch (playerOffset) {
+            case 0: // no offset for first player
+                break;
+            case 1:
+                coordinates[0] += 20;
+                break;
+            case 2:
+                coordinates[1] += 20;
+                break;
+            case 3:
+                coordinates[0] += 20;
+                coordinates[1] += 20;
+                break;
+            default:
+                coordinates[0] += (playerOffset % 2) * 20;
+                coordinates[1] += (playerOffset / 2) * 20;
+        }
+
+        System.out.println("Player at position " + position + " with offset " + playerOffset +
+                " placed at coordinates (" + coordinates[0] + "," + coordinates[1] + ")");
 
         return coordinates;
     }

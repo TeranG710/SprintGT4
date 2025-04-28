@@ -43,11 +43,11 @@ public class BoardController {
     private AuctionController auctionController;
     private Map<String, ImageIcon> tokenImages;
     private Map<String, ImageIcon> cardImages;
-    
+
     private Player currentPlayer;
     private boolean gameInProgress;
     private int doubleCount;
-    
+
     /**
      * Constructor for BoardController.
      */
@@ -67,7 +67,7 @@ public class BoardController {
         loadTokenImages();
         loadCardImages();
     }
-    
+
     /**
      * Initialize the GUI.
      */
@@ -78,7 +78,7 @@ public class BoardController {
             setupActionListeners();
         });
     }
-    
+
     /**
      * Set up action listeners for GUI components.
      */
@@ -88,8 +88,8 @@ public class BoardController {
             if (gameInProgress && currentPlayer != null) {
                 int[] diceValues = rollDice();
                 gui.updateDice(diceValues[0], diceValues[1]);
-                gui.displayMessage(currentPlayer.getName() + " rolled a " + 
-                                  (diceValues[0] + diceValues[1]) + " (" + 
+                gui.displayMessage(currentPlayer.getName() + " rolled a " +
+                                  (diceValues[0] + diceValues[1]) + " (" +
                                   diceValues[0] + " and " + diceValues[1] + ")");
             } else {
                 JOptionPane.showMessageDialog(gui.getMainFrame(),
@@ -106,47 +106,47 @@ public class BoardController {
                         "Cannot End Turn", JOptionPane.WARNING_MESSAGE);
             }
         });
-        
+
         gui.addNewGameListener(event -> {
             JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
-            
+
             panel.add(new JLabel("Human Players (1-4):"));
             JSpinner humanSpinner = new JSpinner(new SpinnerNumberModel(2, 1, 4, 1));
             panel.add(humanSpinner);
-            
+
             panel.add(new JLabel("Computer Players (0-3):"));
             JSpinner cpuSpinner = new JSpinner(new SpinnerNumberModel(2, 0, 3, 1));
             panel.add(cpuSpinner);
-            
-            int result = JOptionPane.showConfirmDialog(gui.getMainFrame(), panel, 
+
+            int result = JOptionPane.showConfirmDialog(gui.getMainFrame(), panel,
                     "New Game", JOptionPane.OK_CANCEL_OPTION);
-            
+
             if (result == JOptionPane.OK_OPTION) {
                 int humanCount = (Integer) humanSpinner.getValue();
                 int cpuCount = (Integer) cpuSpinner.getValue();
                 ArrayList<String> humanNames = new ArrayList<>();
                 for (int i = 0; i < humanCount; i++) {
-                    String name = JOptionPane.showInputDialog(gui.getMainFrame(), 
-                            "Enter name for Human Player " + (i + 1) + ":", 
+                    String name = JOptionPane.showInputDialog(gui.getMainFrame(),
+                            "Enter name for Human Player " + (i + 1) + ":",
                             "Player " + (i + 1));
-                    
+
                     if (name == null || name.trim().isEmpty()) {
                         name = "Player " + (i + 1);
                     }
-                    
+
                     humanNames.add(name);
                 }
                 startGame(humanNames, cpuCount);
             }
         });
     }
-    
+
     /**
      * Load token images for players.
      */
     private void loadTokenImages() {
         String[] tokenNames = {"hat", "car", "dog", "shoe", "ship", "thimble", "wheelbarrow", "iron", "battleship", "boot"};
-        Color[] tokenColors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, 
+        Color[] tokenColors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW,
                               Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.PINK,
                               Color.DARK_GRAY, new Color(101, 67, 33)};
         File tokenDir = new File("resources/tokens");
@@ -162,10 +162,10 @@ public class BoardController {
                 tokenName.toUpperCase() + ".png",
                 tokenName.equals("ship") ? "battleship.png" : null
             };
-            
+
             for (String filename : filenameVariations) {
                 if (filename == null) continue;
-                
+
                 File rootTokenFile = new File(filename);
                 if (rootTokenFile.exists()) {
                     try {
@@ -175,7 +175,7 @@ public class BoardController {
                         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                         g2.drawImage(image, 0, 0, 40, 40, null);
                         g2.dispose();
-                        
+
                         tokenImages.put(tokenName, new ImageIcon(resizedImage));
                         System.out.println("Loaded token image from root directory: " + rootTokenFile.getAbsolutePath());
                         imageLoaded = true;
@@ -188,7 +188,7 @@ public class BoardController {
             if (imageLoaded) continue;
             String tokenPath = "resources/tokens/" + tokenName + ".png";
             File tokenFile = new File(tokenPath);
-            
+
             if (tokenFile.exists()) {
                 try {
                     BufferedImage image = ImageIO.read(tokenFile);
@@ -197,7 +197,7 @@ public class BoardController {
                     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                     g2.drawImage(image, 0, 0, 40, 40, null);
                     g2.dispose();
-                    
+
                     tokenImages.put(tokenName, new ImageIcon(resizedImage));
                     System.out.println("Loaded token image from resources: " + tokenPath);
                     continue;
@@ -205,7 +205,7 @@ public class BoardController {
                     System.err.println("Error loading token image from resources: " + tokenPath);
                 }
             }
-            
+
             int index = Arrays.asList(tokenNames).indexOf(tokenName);
             Color tokenColor = (index >= 0) ? tokenColors[index] : Color.GRAY;
             int size = 40;
@@ -217,12 +217,12 @@ public class BoardController {
             g2.setComposite(AlphaComposite.SrcOver);
             g2.setColor(tokenColor);
             g2.fillOval(4, 4, size - 8, size - 8);
-            
+
 
             g2.setColor(Color.BLACK);
             g2.setStroke(new BasicStroke(2));
             g2.drawOval(4, 4, size - 8, size - 8);
-            
+
             // Add the first letter of the token name
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Arial", Font.BOLD, 20));
@@ -231,15 +231,15 @@ public class BoardController {
             int letterWidth = fm.stringWidth(letter);
             int letterHeight = fm.getAscent();
             g2.drawString(letter, (size - letterWidth) / 2, (size + letterHeight) / 2 - 2);
-            
+
             g2.dispose();
-            
+
             try {
                 // Save the image to resources directory
                 tokenFile = new File(tokenPath);
                 ImageIO.write(image, "PNG", tokenFile);
                 System.out.println("Created default token image: " + tokenPath);
-                
+
                 // Add to memory cache
                 tokenImages.put(tokenName, new ImageIcon(image));
             } catch (IOException e) {
@@ -583,119 +583,55 @@ public class BoardController {
         if (!game.gameInProgress() || currentPlayer == null) {
             return new int[]{1, 1}; // Default values if game not in progress
         }
-        
-        // CRITICAL FIX: Check initial player position before rolling
+
+        // CRITICAL FIX: Check and fix player position before rolling
+        ensureValidPosition(currentPlayer);
         int startingPosition = currentPlayer.getPosition();
-        System.out.println("********************************************");
-        System.out.println("POSITION CHECK: " + currentPlayer.getName() + 
-                         " is at position " + startingPosition + " before rolling");
-        
-        // Reset problematic positions
-        if (startingPosition >= 40 || startingPosition < 0) {
-            System.out.println("SEVERE ERROR: " + currentPlayer.getName() + 
-                             " has invalid position " + startingPosition + " - resetting to GO");
-            currentPlayer.setPosition(0);
-            startingPosition = 0;
-            
-            // Update GUI if available
-            if (gui != null) {
-                gui.updatePlayerPosition(currentPlayer, 0);
-            }
-        }
-        
+
         // Roll the dice
         dice.roll();
         int[] diceValues = {dice.getDie1(), dice.getDie2()};
         boolean isDoubles = dice.isDouble();
-        int totalSpaces = diceValues[0] + diceValues[1]; // Use actual dice values
-        
-        // For debug inspection
-        System.out.println("*** DICE ROLLS: " + diceValues[0] + " and " + diceValues[1]);
-        System.out.println("*** TOTAL: " + totalSpaces + " spaces");
-        
-        // Move the player
-        try {
-            // CRITICAL FIX: ABSOLUTE CONTROL over position calculation
-            int newPosition = (startingPosition + totalSpaces) % 40;
-            System.out.println("POSITION CALCULATION: " + startingPosition + 
-                             " + " + totalSpaces + " = " + newPosition);
-            
-            // BYPASS all other movement methods which might be causing issues
-            // The Model's move method might have side effects - don't use it
-            
-            // Set position DIRECTLY - this is the authoritative position
+        int totalSpaces = diceValues[0] + diceValues[1];
+
+        // Calculate new position - explicit modulo math to ensure valid position
+        int newPosition = (startingPosition + totalSpaces) % 40;
+
+        // Set position DIRECTLY - bypass any potential issues
+        currentPlayer.setPosition(newPosition);
+        System.out.println("Player " + currentPlayer.getName() +
+                " moved from position " + startingPosition +
+                " to position " + newPosition);
+
+        // Verify position was set correctly
+        if (currentPlayer.getPosition() != newPosition) {
+            System.out.println("Position discrepancy detected - fixing");
             currentPlayer.setPosition(newPosition);
-            System.out.println("======> " + currentPlayer.getName() + 
-                             " MOVED FROM POSITION " + startingPosition + 
-                             " TO POSITION " + newPosition + 
-                             " (DICE: " + diceValues[0] + "+" + diceValues[1] + "=" + totalSpaces + ")");
-            
-            // Triple-check the position was set correctly
-            int verifiedPosition = currentPlayer.getPosition();
-            if (verifiedPosition != newPosition) {
-                System.out.println("CRITICAL POSITION ERROR: Expected position " + newPosition + 
-                                 " but actual position is " + verifiedPosition + " - fixing");
-                currentPlayer.setPosition(newPosition);
-                
-                // Force another check
-                if (currentPlayer.getPosition() != newPosition) {
-                    System.out.println("SEVERE POSITION ERROR: Cannot set player position correctly!");
-                }
-            }
-            
-            // First update the dice display
-            if (gui != null) {
-                try {
-                    // Update dice immediately
-                    if (SwingUtilities.isEventDispatchThread()) {
-                        gui.updateDice(diceValues[0], diceValues[1]);
-                    } else {
-                        SwingUtilities.invokeAndWait(() -> gui.updateDice(diceValues[0], diceValues[1]));
-                    }
-                    
-                    // Small delay to ensure sequenced operations
-                    Thread.sleep(100);
-                    
-                    // Then update player position separately
-                    if (SwingUtilities.isEventDispatchThread()) {
-                        gui.updatePlayerPosition(currentPlayer, newPosition);
-                    } else {
-                        SwingUtilities.invokeAndWait(() -> gui.updatePlayerPosition(currentPlayer, newPosition));
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error updating GUI: " + e.getMessage());
-                    // Fallback with basic updates
-                    SwingUtilities.invokeLater(() -> {
-                        gui.updateDice(diceValues[0], diceValues[1]);
-                        gui.updatePlayerPosition(currentPlayer, newPosition);
-                    });
-                }
-            }
-            
-            // Handle doubles
-            if (isDoubles) {
-                doubleCount++;
-                if (doubleCount == 3) {
-                    // Three doubles in a row sends player to jail
-                    sendPlayerToJail(currentPlayer);
-                    doubleCount = 0;
-                    endTurn();
-                }
-            } else {
-                doubleCount = 0;
-            }
-            
-            // Check the space the player landed on
-            handleLandedSpace(currentPlayer, newPosition);
-            
-            System.out.println("********************************************");
-            return diceValues;
-            
-        } catch (Exception e) {
-            System.err.println("Error moving player: " + e.getMessage());
-            e.printStackTrace();
-            return new int[]{1, 1};
         }
+
+        // Update GUI
+        if (gui != null) {
+            gui.updateDice(diceValues[0], diceValues[1]);
+            gui.updatePlayerPosition(currentPlayer, newPosition);
+        }
+
+        // Handle doubles
+        if (isDoubles) {
+            doubleCount++;
+            if (doubleCount == 3) {
+                // Three doubles in a row sends player to jail
+                sendPlayerToJail(currentPlayer);
+                doubleCount = 0;
+                endTurn();
+            }
+        } else {
+            doubleCount = 0;
+        }
+
+        // Process space landing
+        handleLandedSpace(currentPlayer, newPosition);
+
+        return diceValues;
     }
     
     /**
@@ -2012,5 +1948,46 @@ public class BoardController {
      */
     public boolean isGameInProgress() {
         return game.gameInProgress();
+    }
+    private void ensureValidPosition(Player player) {
+        if (player == null) return;
+
+        int position = player.getPosition();
+        // Fix invalid positions - ensure position is between 0 and 39
+        if (position < 0 || position >= 40) {
+            System.out.println("CRITICAL: Fixing invalid position " + position +
+                    " for player " + player.getName());
+            // Set to GO as a fallback
+            position = 0;
+            player.setPosition(position);
+
+            // Update GUI if available
+            if (gui != null) {
+                gui.updatePlayerPosition(player, position);
+            }
+        }
+    }
+    /**
+     * Reset the game state variables in the controller.
+     * This should be called when starting a new game.
+     */
+    public void resetGameState() {
+        // Reset dice-related variables
+        doubleCount = 0;
+
+        // Reset player positions (just to be extra safe)
+        if (players != null) {
+            for (Player player : players) {
+                player.setPosition(0);
+                System.out.println("RESET: Setting " + player.getName() + " to position 0 (GO)");
+            }
+        }
+
+        // Reset other state variables if needed
+        if (gui != null) {
+            gui.updateDice(1, 1); // Reset dice display
+        }
+
+        System.out.println("BoardController game state reset complete");
     }
 }

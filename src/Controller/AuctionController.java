@@ -20,347 +20,221 @@ public class AuctionController {
     private Banker banker;
     private JDialog auctionDialog;
     private Map<Player, Integer> currentBids;
-    private Map<Player, JLabel> bidLabels;
-    private Map<Player, JButton> bidButtons;
     private BoardSpace propertyForAuction;
-    private ArrayList<Player> participatingPlayers;
-    private int currentHighestBid;
     private Player highestBidder;
-    private Timer auctionTimer;
-    private int timeLeft;
-    private JLabel timerLabel;
-    private JLabel propertyInfoLabel;
-    private JLabel highestBidLabel;
-    private boolean auctionInProgress;
+    private int currentHighestBid;
+    private boolean auctionComplete;
 
     /**
      * Constructor for AuctionController.
-     **/
+     */
     public AuctionController() {
         this.banker = Banker.getInstance();
         this.currentBids = new HashMap<>();
-        this.bidLabels = new HashMap<>();
-        this.bidButtons = new HashMap<>();
-        this.auctionInProgress = false;
+        this.auctionComplete = false;
     }
 
     /**
      * Start an auction for a property.
+     *
      * @param property The property being auctioned
      * @param players List of players participating in the auction
      * @param parentFrame The parent frame for the auction dialog
      * @return The player who won the auction, or null if nobody bid
      */
-    // In the startAuction method:
     public Player startAuction(BoardSpace property, ArrayList<Player> players, JFrame parentFrame) {
         if (property == null || players == null || players.isEmpty()) {
             return null;
         }
+
+        // Set up auction variables
         propertyForAuction = property;
-        participatingPlayers = new ArrayList<>(players);
         currentHighestBid = 0;
         highestBidder = null;
-        auctionInProgress = true;
+        auctionComplete = false;
+
+        // Reset bids
         currentBids.clear();
         for (Player player : players) {
             currentBids.put(player, 0);
         }
 
-        // Create and show the auction dialog in a non-blocking way
-        SwingUtilities.invokeLater(() -> {
-            createAuctionDialog(parentFrame);
-            auctionDialog.setVisible(true);
-        });
+        // Create and show the auction dialog synchronously
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                showSimpleAuctionDialog(players, parentFrame);
+            });
+        } catch (Exception e) {
+            System.err.println("Error showing auction dialog: " + e.getMessage());
+        }
 
-        // Wait for auction to complete with a timeout
-        long startTime = System.currentTimeMillis();
-        long timeout = 60000; // 60 seconds timeout
-        while (auctionInProgress && (System.currentTimeMillis() - startTime) < timeout) {
+        // If we have a winner, complete the transaction
+        if (highestBidder != null && currentHighestBid > 0) {
             try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                // Transfer money and property
+                banker.withdraw(highestBidder, currentHighestBid);
+                banker.addTitleDeed(highestBidder, property);
+                property.setOwner(highestBidder);
+
+                System.out.println("AUCTION COMPLETE: " + highestBidder.getName() +
+                        " won " + property.getName() + " for $" + currentHighestBid);
+
+                return highestBidder;
+            } catch (Exception e) {
+                System.err.println("Error completing auction transaction: " + e.getMessage());
             }
         }
 
-        if (auctionInProgress) {
-            // If we timed out, force end the auction
-            System.out.println("Auction timed out - forcing completion");
-            auctionInProgress = false;
-            SwingUtilities.invokeLater(() -> {
-                if (auctionDialog != null && auctionDialog.isVisible()) {
-                    auctionDialog.dispose();
-                }
-            });
-        }
-
-        return highestBidder;
+        return null;
     }
 
     /**
-     * Create the auction dialog with UI components.
-     * 
-     * @param parentFrame The parent frame for the dialog
+     * Show a simple auction dialog that lets players enter bids.
      */
-    private void createAuctionDialog(JFrame parentFrame) {
+    private void showSimpleAuctionDialog(ArrayList<Player> players, JFrame parentFrame) {
         auctionDialog = new JDialog(parentFrame, "Property Auction", true);
         auctionDialog.setLayout(new BorderLayout());
-        auctionDialog.setSize(500, 400);
+        auctionDialog.setSize(400, 300);
         auctionDialog.setLocationRelativeTo(parentFrame);
 
+        // Property info panel
         JPanel propertyPanel = new JPanel(new BorderLayout());
         propertyPanel.setBorder(BorderFactory.createTitledBorder("Property for Auction"));
+
         String propertyName = propertyForAuction.getName();
         int propertyPrice = 0;
         if (propertyForAuction instanceof Model.Property.Property) {
             propertyPrice = ((Model.Property.Property) propertyForAuction).getPurchasePrice();
         }
-        
-        propertyInfoLabel = new JLabel("<html><h2>" + propertyName + "</h2>" +
+
+        JLabel propertyLabel = new JLabel("<html><h3>" + propertyName + "</h3>" +
                 "Starting bid: $" + (propertyPrice / 2) + "<br>" +
                 "Market value: $" + propertyPrice + "</html>");
-        propertyInfoLabel.setHorizontalAlignment(JLabel.CENTER);
-        propertyPanel.add(propertyInfoLabel, BorderLayout.CENTER);
-        JPanel statusPanel = new JPanel(new GridLayout(2, 1));
-        highestBidLabel = new JLabel("Current highest bid: $0 (None)");
-        highestBidLabel.setHorizontalAlignment(JLabel.CENTER);
-        highestBidLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        
-        timeLeft = 30;
-        timerLabel = new JLabel("Time remaining: " + timeLeft + " seconds");
-        timerLabel.setHorizontalAlignment(JLabel.CENTER);
-        
-        statusPanel.add(highestBidLabel);
-        statusPanel.add(timerLabel);
-        auctionTimer = new Timer(1000, event -> {
-            timeLeft--;
-            timerLabel.setText("Time remaining: " + timeLeft + " seconds");
-            
-            if (timeLeft <= 0) {
-                auctionTimer.stop();
-                finishAuction();
-            }
-        });
-        
-        JPanel playersPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        playersPanel.setBorder(BorderFactory.createTitledBorder("Players"));
-        bidLabels.clear();
-        bidButtons.clear();
-        for (Player player : participatingPlayers) {
+        propertyLabel.setHorizontalAlignment(JLabel.CENTER);
+        propertyPanel.add(propertyLabel, BorderLayout.CENTER);
+
+        // Bidding panel
+        JPanel biddingPanel = new JPanel();
+        biddingPanel.setLayout(new BoxLayout(biddingPanel, BoxLayout.Y_AXIS));
+        biddingPanel.setBorder(BorderFactory.createTitledBorder("Current Bids"));
+
+        Map<Player, JLabel> bidLabels = new HashMap<>();
+
+        for (Player player : players) {
             JPanel playerPanel = new JPanel(new BorderLayout());
             playerPanel.setBorder(BorderFactory.createEtchedBorder());
-            
+
             JLabel nameLabel = new JLabel(player.getName());
-            nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-            
-            JLabel bidLabel = new JLabel("Current bid: $0");
+            JLabel bidLabel = new JLabel("Bid: $0");
             bidLabels.put(player, bidLabel);
-            
-            JPanel bidControlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            JTextField bidField = new JTextField(5);
-            JButton bidButton = new JButton("Place Bid");
-            bidButtons.put(player, bidButton);
-            
-            if (player instanceof Model.Board.ComputerPlayer) {
-                bidField.setEnabled(false);
-                bidButton.setEnabled(false);
-            } else {
-                bidButton.addActionListener(event -> {
-                    try {
-                        int bidAmount = Integer.parseInt(bidField.getText());
-                        placeBid(player, bidAmount);
-                        bidField.setText("");
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(auctionDialog, 
-                                "Please enter a valid number for your bid.", 
-                                "Invalid Bid", JOptionPane.WARNING_MESSAGE);
-                    }
-                });
-            }
-            
-            JButton passButton = new JButton("Pass");
-            passButton.addActionListener(event -> {
-                participatingPlayers.remove(player);
-                playerPanel.setEnabled(false);
-                nameLabel.setEnabled(false);
-                bidLabel.setEnabled(false);
-                bidField.setEnabled(false);
-                bidButton.setEnabled(false);
-                passButton.setEnabled(false);
-                
-                if (participatingPlayers.size() == 1) {
-                    highestBidder = participatingPlayers.get(0);
-                    currentHighestBid = Math.max(currentHighestBid, 1); // Minimum $1 bid
-                    finishAuction();
-                } else if (participatingPlayers.isEmpty()) {
-                    finishAuction();
-                }
-            });
-            
-            bidControlPanel.add(new JLabel("$"));
-            bidControlPanel.add(bidField);
-            bidControlPanel.add(bidButton);
-            bidControlPanel.add(passButton);
-            
-            JPanel playerInfoPanel = new JPanel(new GridLayout(2, 1));
-            playerInfoPanel.add(nameLabel);
-            playerInfoPanel.add(bidLabel);
-            
-            playerPanel.add(playerInfoPanel, BorderLayout.CENTER);
-            playerPanel.add(bidControlPanel, BorderLayout.EAST);
-            
-            playersPanel.add(playerPanel);
+
+            playerPanel.add(nameLabel, BorderLayout.WEST);
+            playerPanel.add(bidLabel, BorderLayout.EAST);
+
+            biddingPanel.add(playerPanel);
         }
-        
+
+        // Control panel
+        JPanel controlPanel = new JPanel(new FlowLayout());
+
+        JLabel currentPlayerLabel = new JLabel("Current player: " + players.get(0).getName());
+        JTextField bidField = new JTextField(10);
+        JButton bidButton = new JButton("Place Bid");
+        JButton passButton = new JButton("Pass");
+        JLabel statusLabel = new JLabel("Enter bid amount");
+
+        controlPanel.add(currentPlayerLabel);
+        controlPanel.add(new JLabel("Bid: $"));
+        controlPanel.add(bidField);
+        controlPanel.add(bidButton);
+        controlPanel.add(passButton);
+
+        // Add components to dialog
         auctionDialog.add(propertyPanel, BorderLayout.NORTH);
-        auctionDialog.add(new JScrollPane(playersPanel), BorderLayout.CENTER);
-        auctionDialog.add(statusPanel, BorderLayout.SOUTH);
-        
-        auctionTimer.start();
-        
-        triggerComputerBids();
-    }
-    
-    /**
-     * Have computer players place bids automatically.
-     */
-    private void triggerComputerBids() {
-        for (Player player : participatingPlayers) {
-            if (player instanceof Model.Board.ComputerPlayer) {
-                Timer cpuTimer = new Timer(2000 + (int)(Math.random() * 3000), event -> {
-                    if (participatingPlayers.contains(player)) {
-                        int playerMoney = 0;
-                        try {
-                            playerMoney = banker.getBalance(player);
-                        } catch (PlayerNotFoundException ex) {
-                            playerMoney = 0;
-                            System.err.println("Player not found: " + ex.getMessage());
-                        }
-                        
-                        int basePrice = 0;
-                        if (propertyForAuction instanceof Model.Property.Property) {
-                            basePrice = ((Model.Property.Property) propertyForAuction).getPurchasePrice();
-                        }
-                        
-                        double bidChance = Math.random();
-                        if (bidChance > 0.4) {
-                            int maxBid = Math.min(playerMoney, basePrice);
-                            int minBid = currentHighestBid + 5; // At least $5 more than current bid
-                            
-                            int maxWillingToPay = (int)(basePrice * 1.25);
-                            maxBid = Math.min(maxBid, maxWillingToPay);
-                            
-                            if (maxBid >= minBid) {
-                                int bidAmount = minBid + (int)(Math.random() * (maxBid - minBid) / 2);
-                                placeBid(player, bidAmount);
-                            } else {
-                                participatingPlayers.remove(player);
-                                bidLabels.get(player).setText("Passed");
-                            }
-                        } else {
-                            participatingPlayers.remove(player);
-                            bidLabels.get(player).setText("Passed");
-                        }
-                        
-                        if (participatingPlayers.size() == 1) {
-                            highestBidder = participatingPlayers.get(0);
-                            currentHighestBid = Math.max(currentHighestBid, 1); // Minimum $1 bid
-                            finishAuction();
-                        } else if (participatingPlayers.isEmpty()) {
-                            finishAuction();
-                        }
-                    }
-                });
-                cpuTimer.setRepeats(false);
-                cpuTimer.start();
-            }
-        }
-    }
-    
-    /**
-     * Place a bid for a player.
-     * @param player The player placing the bid
-     * @param amount The bid amount
-     */
-    private void placeBid(Player player, int amount) {
-        if (!participatingPlayers.contains(player)) {
-            return;
-        }
-        
-        int playerMoney = 0;
-        try {
-            playerMoney = banker.getBalance(player);
-        } catch (PlayerNotFoundException e) {
-            JOptionPane.showMessageDialog(auctionDialog, 
-                    "Player not found: " + e.getMessage(), 
-                    "Player Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        if (amount > playerMoney) {
-            JOptionPane.showMessageDialog(auctionDialog, 
-                    "You don't have enough money for this bid.", 
-                    "Insufficient Funds", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        if (amount <= currentHighestBid) {
-            JOptionPane.showMessageDialog(auctionDialog, 
-                    "Your bid must be higher than the current highest bid of $" + currentHighestBid, 
-                    "Bid Too Low", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        currentBids.put(player, amount);
-        bidLabels.get(player).setText("Current bid: $" + amount);
-        
-        currentHighestBid = amount;
-        highestBidder = player;
-        highestBidLabel.setText("Current highest bid: $" + amount + " (" + player.getName() + ")");
-        
-        if (timeLeft < 10) {
-            timeLeft += 10;
-            if (timeLeft > 30) {
-                timeLeft = 30;
-            }
-            timerLabel.setText("Time remaining: " + timeLeft + " seconds");
-        }
-    }
-    
-    /**
-     * Finish the auction and process the result.
-     */
-    private void finishAuction() {
-        auctionTimer.stop();
-        
-        if (highestBidder != null) {
+        auctionDialog.add(new JScrollPane(biddingPanel), BorderLayout.CENTER);
+        auctionDialog.add(controlPanel, BorderLayout.SOUTH);
+        auctionDialog.add(statusLabel, BorderLayout.NORTH);
+
+        // Set up a simple turn-based auction for each player
+        final int[] currentPlayerIndex = {0};
+
+        // Update the current player label
+        updateCurrentPlayer(currentPlayerLabel, players.get(currentPlayerIndex[0]));
+
+        // Bid button action
+        bidButton.addActionListener(e -> {
             try {
-                banker.sellProperty(propertyForAuction, highestBidder);
-                
-                int difference = currentHighestBid - ((Model.Property.Property) propertyForAuction).getPurchasePrice();
-                if (difference > 0) {
-                    try {
-                        banker.withdraw(highestBidder, difference);
-                    } catch (Exception ex) {
-                        System.err.println("Error adjusting auction price: " + ex.getMessage());
-                    }
+                Player currentPlayer = players.get(currentPlayerIndex[0]);
+                int bidAmount = Integer.parseInt(bidField.getText());
+
+                // Check if bid is valid
+                if (bidAmount <= currentHighestBid) {
+                    statusLabel.setText("Bid must be higher than current highest bid ($" + currentHighestBid + ")");
+                    return;
                 }
-                
-                JOptionPane.showMessageDialog(auctionDialog, 
-                        highestBidder.getName() + " won the auction for " + propertyForAuction.getName() + 
-                        " with a bid of $" + currentHighestBid, 
-                        "Auction Complete", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception e) {
-                System.err.println("Error during auction transaction: " + e.getMessage());
-                e.printStackTrace();
+
+                // Check if player has enough money
+                int playerMoney = banker.getBalance(currentPlayer);
+                if (bidAmount > playerMoney) {
+                    statusLabel.setText("You don't have enough money for this bid. Your balance: $" + playerMoney);
+                    return;
+                }
+
+                // Accept the bid
+                currentBids.put(currentPlayer, bidAmount);
+                bidLabels.get(currentPlayer).setText("Bid: $" + bidAmount);
+
+                // Update highest bid
+                currentHighestBid = bidAmount;
+                highestBidder = currentPlayer;
+                statusLabel.setText(currentPlayer.getName() + " bid $" + bidAmount);
+
+                // Move to next player
+                moveToNextPlayer(currentPlayerIndex, players, currentPlayerLabel);
+                bidField.setText("");
+
+            } catch (NumberFormatException ex) {
+                statusLabel.setText("Please enter a valid number for your bid");
+            } catch (PlayerNotFoundException ex) {
+                statusLabel.setText("Error: " + ex.getMessage());
             }
-        } else {
-            JOptionPane.showMessageDialog(auctionDialog,
-                    "Nobody bid on " + propertyForAuction.getName() + ". The property remains with the bank.", 
-                    "Auction Complete", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        // Pass button action
+        passButton.addActionListener(e -> {
+            Player currentPlayer = players.get(currentPlayerIndex[0]);
+            statusLabel.setText(currentPlayer.getName() + " passed");
+
+            // Move to next player
+            moveToNextPlayer(currentPlayerIndex, players, currentPlayerLabel);
+            bidField.setText("");
+        });
+
+        // Show the dialog
+        auctionDialog.setVisible(true);
+    }
+
+    /**
+     * Move to the next player in the auction
+     */
+    private void moveToNextPlayer(int[] currentIndex, ArrayList<Player> players, JLabel playerLabel) {
+        currentIndex[0] = (currentIndex[0] + 1) % players.size();
+
+        // Update player label
+        updateCurrentPlayer(playerLabel, players.get(currentIndex[0]));
+
+        // Check if we've gone around the table and all players have had a chance to bid
+        // If we come back to a player with a current bid, end the auction
+        if (currentIndex[0] == 0 && highestBidder != null) {
+            auctionComplete = true;
+            auctionDialog.dispose();
         }
-        
-        auctionDialog.dispose();
-        auctionInProgress = false;
+    }
+
+    /**
+     * Update the current player label
+     */
+    private void updateCurrentPlayer(JLabel label, Player player) {
+        label.setText("Current player: " + player.getName());
     }
 }

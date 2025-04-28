@@ -174,9 +174,17 @@ public class Banker {
      * Ensures player has an entry in titleDeeds map
      * Team member(s) responsible: Jamell
      */
+    /**
+     * Add title deed of a player's property
+     * Ensures player has an entry in titleDeeds map
+     * Team member(s) responsible: Jamell
+     */
     public void addTitleDeed(Player player, BoardSpace property) {
         System.out.println("BANKER: Adding " + property.getName() +
                 " to " + player.getName() + "'s title deeds");
+
+        // Ensure property has correct owner set
+        property.setOwner(player);
 
         // Ensure player has an entry in titleDeeds map
         if (!titleDeeds.containsKey(player)) {
@@ -184,7 +192,7 @@ public class Banker {
             System.out.println("BANKER: Created new title deed list for " + player.getName());
         }
 
-        // Add the property to player's title deeds
+        // Add the property to player's title deeds if not already there
         ArrayList<BoardSpace> properties = titleDeeds.get(player);
         if (!properties.contains(property)) {
             properties.add(property);
@@ -193,16 +201,10 @@ public class Banker {
             System.out.println("BANKER: Property was already in deed list");
         }
 
-        // Double check property owner is set
-        if (property.getOwner() != player) {
-            System.out.println("BANKER WARNING: Property owner was not set correctly. Fixing.");
-            property.setOwner(player);
-        }
-
-        // Double check property is removed from available properties
+        // Remove property from available properties
         if (availableProperties.contains(property)) {
-            System.out.println("BANKER WARNING: Property still in available list. Removing.");
             availableProperties.remove(property);
+            System.out.println("BANKER: Removed property from available list");
         }
     }
 
@@ -296,19 +298,29 @@ public class Banker {
             throw new PlayerNotFoundException();
         }
 
-        // Important: Check if property is actually available
-        if (!availableProperties.contains(property)) {
-            // Try to make it available if it has no owner
-            if (property.getOwner() == null) {
-                System.out.println("BANKER: Property has no owner but wasn't in available list. Adding it.");
-                availableProperties.add(property);
-            } else {
-                System.out.println("BANKER ERROR: Property is already owned by " +
-                        property.getOwner().getName());
-                throw new InvalidTransactionException();
-            }
+        // Make sure property is available or has no owner
+        boolean isAvailable = availableProperties.contains(property);
+        boolean hasNoOwner = property.getOwner() == null;
+
+        // Debug info
+        System.out.println("BANKER: Property available in list: " + isAvailable);
+        System.out.println("BANKER: Property has no owner: " + hasNoOwner);
+
+        if (!isAvailable && !hasNoOwner) {
+            // Property is not available and already has an owner
+            System.out.println("BANKER ERROR: Property is already owned by " +
+                    property.getOwner().getName());
+            throw new InvalidTransactionException();
         }
 
+        // If property has no owner but isn't in available list, add it
+        if (hasNoOwner && !isAvailable) {
+            availableProperties.add(property);
+            System.out.println("BANKER: Added property to available list");
+            isAvailable = true;
+        }
+
+        // Get property price
         int price = property.getPurchasePrice();
         System.out.println("BANKER: Property price is $" + price);
 
@@ -322,21 +334,15 @@ public class Banker {
 
         // Process the transaction
         withdraw(player, price);
+        System.out.println("BANKER: Withdrew $" + price + " from " + player.getName());
 
-        // Explicitly remove from available properties
-        boolean removed = availableProperties.remove(property);
-        System.out.println("BANKER: Property removed from available list: " + removed);
-
-        // Set the owner directly
+        // Explicitly add property to player's deeds and set owner
         property.setOwner(player);
-
-        // Add to player's deeds
         addTitleDeed(player, property);
 
         System.out.println("BANKER: Transaction complete. " + player.getName() +
                 " now owns " + property.getName());
     }
-
     /**
      * Buy a property back from a player (for mortgaging)
      *
